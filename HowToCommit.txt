@@ -1,0 +1,19 @@
+When ever you modify the repsoitory in any way please include one of the
+following as a prefix in your commit message:
+
+[FEATURE, FIX, DOC, INTERNAL, TEST, OTHER]
+
+FEATURE = I added a new feature
+FIX = I fixed a bug
+DOC = I made changes to the documentation
+INTERNAL = I changed something to be more efficient/reliabe/... but it does not change the outcome.
+TEST = I added/modified a test.
+
+Please put the tag into square brackets before the short, one sentence message.
+If the message is longe please provide a summary message first, add an empty
+line and then include the full description of the commit 
+
+For example:
+git commit -m "[TEST, FIX] Fixed a bowtie reporting issue and added an appropriate test.
+
+Bowtie2 uses the MAPQ 255 for uniq mappings. According to the BAM specification this number is reserved for: MAPQ not available. Because of this some tools get confused. Therefore I reset a MAPQ of 255 to 60 when using bowtie2."

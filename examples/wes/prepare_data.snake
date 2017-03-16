@@ -1,0 +1,265 @@
+OUTDIR = ''
+
+f = open('SRP051153_run_info.txt', 'r')
+NAMES = []
+f.readline()
+for line in f:
+    NAMES.append(line.strip().split("\t")[5])
+f.close()
+
+f = open('SRP051153_run_info.txt', 'r')
+SRR2SAMPLE = {}
+f.readline()
+for line in f:
+    SRR2SAMPLE[line.strip().split()[5]] = (line.strip().split()[2])
+f.close()
+
+def finalFastqNames():
+    out = []
+    for srr, sample in SRR2SAMPLE.items():
+        out.append('sra/' + sample + '/PAIREDEND/' + srr + '_R1.fastq.gz')
+        out.append('sra/' + sample + '/PAIREDEND/' + srr + '_R2.fastq.gz')
+    return out
+FINALFASTQNAMES = finalFastqNames()
+
+def finalTSVNames():
+    out = []
+    for srr, sample in SRR2SAMPLE.items():
+        out.append('sra/' + sample + '/PAIREDEND/' + srr + '.tsv')
+    return out
+FINALTSVNAMES = finalTSVNames()
+
+rule all:
+    input: 
+        expand(OUTDIR + 'sra/{id}.sra', id = NAMES),
+        expand(OUTDIR + 'sra/{id}/PAIREDEND/{id}_1.fastq.gz', id = NAMES),
+        expand(OUTDIR + 'sra/{id}/PAIREDEND/{id}_2.fastq.gz', id = NAMES),
+        expand(OUTDIR + '{file}', file = FINALFASTQNAMES),
+        expand(OUTDIR + '{file}', file = FINALTSVNAMES),
+        '../resources/ucsc.hg19.fasta',
+        '../resources/ucsc.hg19.fasta.fai',
+        '../resources/ucsc.hg19.dict',
+        '../resources/ucsc.hg19.fasta.amb',
+        '../resources/nexterarapidcapture_expandedexome_targetedregions.bed',
+        '../tools/qualimap_v2.2.1/qualimap',
+        '../tools/FastQC/fastqc',
+        '../tools/picard.jar',
+        '../tools/VarScan.v2.3.9.jar',
+        '../tools/samtools-1.3.1/bin/samtools'
+
+def getShortId(wildcards):
+    return wildcards.id[0:6]
+
+rule download:
+    output: temp(OUTDIR + 'sra/{id}.sra')
+    params: 
+        shortId = getShortId,
+        lsfoutfile = OUTDIR + 'sra/{id}.sra.out',
+        lsferrfile = OUTDIR + 'sra/{id}.sra.err',
+        scratch = '10000',
+        mem = '10000',
+        time = '600'
+    shell: 'wget ftp://ftp-trace.ncbi.nih.gov/sra/sra-instant/reads/ByRun/sra/SRR/{params.shortId}/{wildcards.id}/{wildcards.id}.sra -O sra/{wildcards.id}.sra'
+
+rule createFastqDump:
+    output:
+        aligner = '../tools/sratoolkit.2.8.2-ubuntu64/bin/fastq-dump'
+    params:
+        place =  '../tools/',
+        lsfoutfile = '../tools/sratoolkit.2.8.2-ubuntu64/bin/fastq-dump.lsfout.log',
+        lsferrfile = '../tools/sratoolkit.2.8.2-ubuntu64/bin/fastq-dump.lsferr.log',
+        scratch = '10000',
+        mem = '10000',
+        time = '20',
+    shell:
+        ('cd {params.place}; ' +
+        'wget https://ftp-trace.ncbi.nlm.nih.gov/sra/sdk/current/sratoolkit.current-ubuntu64.tar.gz; '
+        'tar -xvf sratoolkit.current-ubuntu64.tar.gz; ')
+
+rule fastqDump:
+    input: 
+        sra = OUTDIR + 'sra/{id}.sra',
+        fastqDump = '../tools/sratoolkit.2.8.2-ubuntu64/bin/fastq-dump'
+    output: 
+        R1 = OUTDIR + 'sra/{id}/PAIREDEND/{id}_1.fastq.gz',
+        R2 = OUTDIR + 'sra/{id}/PAIREDEND/{id}_2.fastq.gz',
+    params: 
+        outDir = OUTDIR + 'sra/{id}/PAIREDEND/',
+        lsfoutfile = OUTDIR + 'sra/{id}/PAIREDEND/{id}.fastq.out',
+        lsferrfile = OUTDIR + 'sra/{id}/PAIREDEND/{id}.fastq.err',
+        scratch = '10000',
+        mem = '10000',
+        time = '600',
+    shell:
+        '../tools/sratoolkit.2.8.2-ubuntu64/bin/fastq-dump --split-3 --gzip --outdir {params.outDir} {input.sra}'
+
+localrules: linkFastqs
+rule linkFastqs:
+    input:
+        fastq = OUTDIR + 'sra/{srr}/PAIREDEND/{srr}_{mate}.fastq.gz'
+    output:
+        fastq = OUTDIR + 'sra/{sample}/PAIREDEND/{srr}_R{mate}.fastq.gz'
+    params:
+        outdir = OUTDIR + 'sra/{sample}/PAIREDEND/'
+    shell:
+        'cd {params.outdir}; ln -s ../../{wildcards.srr}/PAIREDEND/{wildcards.srr}_{wildcards.mate}.fastq.gz {wildcards.srr}_R{wildcards.mate}.fastq.gz && touch -h {wildcards.srr}_R{wildcards.mate}.fastq.gz'
+
+localrules: createTSVs
+rule createTSVs:
+    input:
+        fastq = OUTDIR + 'sra/{srr}/PAIREDEND/{srr}_1.fastq.gz'
+    output:
+        fastq = OUTDIR + 'sra/{sample}/PAIREDEND/{srr}.tsv'
+    run:
+        f = open(output.fastq, 'w')
+        f.write("RUN_NAME_FOLDER\t" + wildcards.sample + "\n")
+        f.write("LANE_NUMBER\t" + wildcards.sample + "\n")
+        f.write("SAMPLE_CODE\t" + wildcards.sample + "\n")
+        f.write("SAMPLE_TYPE\tILLUMINA\n")
+        f.close()
+
+rule downloadReference:
+    output:
+        fa = '../resources/ucsc.hg19.fasta',
+        fai = '../resources/ucsc.hg19.fasta.fai',
+        dict = '../resources/ucsc.hg19.dict'
+    params:
+        lsfoutfile = '../resources/ucsc.fasta.hg19.lsfout.log',
+        lsferrfile = '../resources/ucsc.fasta.hg19.lsferr.log',
+        scratch = '10000',
+        mem = '10000',
+        time = '60',
+    shell:
+        ('mkdir -p ../resources; cd ../resources; ' +
+        'wget ftp://gsapubftp-anonymous@ftp.broadinstitute.org/bundle/hg19/ucsc.hg19.fasta.gz; gunzip ucsc.hg19.fasta.gz; ' +
+        'wget ftp://gsapubftp-anonymous@ftp.broadinstitute.org/bundle/hg19/ucsc.hg19.fasta.fai.gz; gunzip ucsc.hg19.fasta.fai.gz; ' +
+        'wget ftp://gsapubftp-anonymous@ftp.broadinstitute.org/bundle/hg19/ucsc.hg19.dict.gz; gunzip ucsc.hg19.dict.gz;')
+
+rule downloadRegions:
+    output:
+        '../resources/nexterarapidcapture_expandedexome_targetedregions.bed',
+    params:
+        lsfoutfile = '../resources/nexterarapidcapture_expandedexome_targetedregions.bed.lsfout.log',
+        lsferrfile = '../resources/nexterarapidcapture_expandedexome_targetedregions.bed.lsferr.log',
+        scratch = '10000',
+        mem = '10000',
+        time = '60',
+    shell:
+        ('mkdir -p ../resources; cd ../resources; ' +
+        'wget http://support.illumina.com/content/dam/illumina-support/documents/documentation/chemistry_documentation/samplepreps_nextera/nexterarapidcapture/nexterarapidcapture_expandedexome_targetedregions.bed')
+
+rule createBwa:
+    output:
+        aligner = '../tools/bwa-0.7.15/bwa'
+    params:
+        place =  '../tools/',
+        lsfoutfile = '../tools/bwa-0.7.15/bwa.lsfout.log',
+        lsferrfile = '../tools/bwa-0.7.15/bwa.lsferr.log',
+        scratch = '10000',
+        mem = '10000',
+        time = '240',
+    shell:
+        ('cd {params.place}; ' +
+        'wget http://downloads.sourceforge.net/project/bio-bwa/bwa-0.7.15.tar.bz2; ' +
+        'tar -xjf bwa-0.7.15.tar.bz2; ' +
+        'cd bwa-0.7.15; ' +
+        'make;')
+
+rule createBwaIndex:
+    input:
+        ref = '../resources/ucsc.hg19.fasta',
+        aligner = '../tools/bwa-0.7.15/bwa'
+    output:
+        index1 = '../resources/ucsc.hg19.fasta.amb',
+        index2 = '../resources/ucsc.hg19.fasta.ann',
+        index3 = '../resources/ucsc.hg19.fasta.bwt',
+        index4 = '../resources/ucsc.hg19.fasta.pac',
+        index5 = '../resources/ucsc.hg19.fasta.sa'
+    params:
+        lsfoutfile = '../resources/ucsc.hg19.fasta.bwa.lsfout.log',
+        lsferrfile = '../resources/ucsc.hg19.fasta.bwa.lsferr.log',
+        scratch = '10000',
+        mem = '10000',
+        time = '240',
+        index = '../resources/ucsc.hg19.fasta'
+    benchmark:
+        '../resources/ucsc.hg19.fasta.bwa.benchmark'
+    shell:
+        '{input.aligner} index {input.ref}'
+
+rule createPicard:
+    output:
+        pic = '../tools/picard.jar'
+    params:
+        place =  '../tools/',
+        lsfoutfile = '../tools/picard.jar.lsfout.log',
+        lsferrfile = '../tools/picard.jar.lsferr.log',
+        scratch = '10000',
+        mem = '10000',
+        time = '240',
+    shell:
+        ('cd {params.place}; ' +
+        'wget https://github.com/broadinstitute/picard/releases/download/2.8.1/picard.jar')
+
+rule createVarscan:
+    output:
+        pic = '../tools/VarScan.v2.3.9.jar'
+    params:
+        place =  '../tools/',
+        lsfoutfile = '../tools/VarScan.v2.3.9.jar.lsfout.log',
+        lsferrfile = '../tools/VarScan.v2.3.9.jar.lsferr.log',
+        scratch = '10000',
+        mem = '10000',
+        time = '240',
+    shell:
+        ('cd {params.place}; ' +
+        'wget https://sourceforge.net/projects/varscan/files/VarScan.v2.3.9.jar')
+
+rule createFastQC:
+    output:
+        fastqc = '../tools/FastQC/fastqc'
+    params:
+        place =  '../tools/',
+        lsfoutfile = '../tools/FastQC/fastqc.lsfout.log',
+        lsferrfile = '../tools/FastQC/fastqc.lsferr.log',
+        scratch = '10000',
+        mem = '10000',
+        time = '20',
+    shell:
+        ('cd {params.place}; ' +
+        'wget --no-check-certificate http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip; ' +
+        'unzip fastqc_v0.11.5.zip; ' +
+        'chmod 755 {output.fastqc}')
+
+rule createQualimap2:
+    output:
+        qualimap = '../tools/qualimap_v2.2.1/qualimap'
+    params:
+        place =  '../tools/',
+        lsfoutfile = '../tools/qualimap_v2.2.1/qualimap.lsfout.log',
+        lsferrfile = '../tools/qualimap_v2.2.1/qualimap.lsferr.log',
+        scratch = '10000',
+        mem = '10000',
+        time = '20',
+    shell:
+        ('cd {params.place}; ' +
+        'wget https://bitbucket.org/kokonech/qualimap/downloads/qualimap_v2.2.1.zip; ' +
+        'unzip qualimap_v2.2.1.zip ')
+
+rule createSamtools:
+    output:
+        sam = '../tools/samtools-1.3.1/bin/samtools'
+    params:
+        place =  '../tools/',
+        lsfoutfile = '../tools/samtools-1.3.1/bin/samtools.lsfout.log',
+        lsferrfile = '../tools/samtools-1.3.1/bin/samtools.lsferr.log',
+        scratch = '10000',
+        mem = '10000',
+        time = '240',
+    shell:
+        ('cd {params.place}; ' +
+        'wget https://github.com/samtools/samtools/releases/download/1.3.1/samtools-1.3.1.tar.bz2; ' +
+        'tar -xvf samtools-1.3.1.tar.bz2; ' +
+        'cd samtools-1.3.1; ' +
+        'make; ' +
+        'make prefix=. install')

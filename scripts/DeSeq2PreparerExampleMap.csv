@@ -1,0 +1,27 @@
+Folder:
+/Users/hansr/Desktop/rnaseqdata/
+Files:
+155D.txt
+158D.txt
+170D.txt
+173D.txt
+6A.txt
+8A.txt
+C78a.txt  #Control
+C78b.txt  #Tumor
+DeSeq2Calls:
+155D.txt,158D.txt,170D.txt,173D.txt 6A.txt  Xeno4thVs6A
+155D.txt,158D.txt,170D.txt,173D.txt 8A.txt  Xeno4thVs8A
+6A.txt  C78b.txt  Xeno6AVsTumor
+6A.txt  C78a.txt  Xeno6AVsControl
+8A.txt  C78b.txt  Xeno8AVsTumor
+8A.txt  C78a.txt  Xeno8AVsControl
+155D.txt,158D.txt,170D.txt,173D.txt C78a.txt  Xeno4thVsControl
+155D.txt,158D.txt,170D.txt,173D.txt C78b.txt  Xeno4thVsNormal
+6A.txt  8A.txt  Xeno6Avs8A
+155D.txt  158D.txt  Xeno155vs158
+155D.txt  170D.txt  Xeno155vs170
+155D.txt  173D.txt  Xeno155vs173
+158D.txt  170D.txt  Xeno158vs170
+158D.txt  173D.txt  Xeno158vs170
+170D.txt  173D.txt  Xeno170vs173

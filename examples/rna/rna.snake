@@ -1,0 +1,14 @@
+import os, glob, sys
+
+ROOTFOLDER = ''
+FASTQFOLDER = ROOTFOLDER + 'fastq/'
+STARINDEXFOLDER = 'resources/'
+GTFFILE = 'resources/Homo_sapiens.GRCh37.87.gatk.gtf'
+
+
+include: '../../snake/rna/rna_snake.py'
+
+rule run:
+    input:
+        'complete.txt'
+
