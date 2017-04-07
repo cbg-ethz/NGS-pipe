@@ -1,7 +1,7 @@
 from snakemake.utils import R
 
 def getContigNames():
-    if config['resources'][ORGANISM]['contigNames'] == '':
+    if isinstance(config['resources'][ORGANISM]['contigNames'], Error):
         return ["ERROR"]
     f = open(config['resources'][ORGANISM]['contigNames'],'r')
     result = []
@@ -28,7 +28,7 @@ rule bicSeq_samtoolsUnique:
         mapper = config['tools']['bicseq2']['unique']['mapper'],
         directory = BICSEQ2OUT + '{sample}' + '/'
     threads:
-        int(config['tools']['bicseq2']['unique']['threads'])
+        config['tools']['bicseq2']['unique']['threads']
     benchmark:
         BICSEQ2OUT + '{sample}/unique.benchmark'
     shell:
@@ -37,29 +37,27 @@ rule bicSeq_samtoolsUnique:
 
 rule extractContigsFromFasta:
     input:
-        fasta = os.path.realpath(config['resources'][ORGANISM]['reference'])
+        fasta = config['resources'][ORGANISM]['reference']
     output:
-        fasta = expand(os.path.realpath(config['resources'][ORGANISM]['reference']) + '_contigs/{contigs}.fasta', contigs = getContigNames()),
-        suc = os.path.realpath(config['resources'][ORGANISM]['reference']) + '_contigs/complete.txt'
+        fasta = expand(config['resources'][ORGANISM]['reference'] + '_contigs/{contigs}.fasta', contigs = getContigNames()),
+        suc = config['resources'][ORGANISM]['reference'] + '_contigs/complete.txt'
     params:
-        lsfoutfile = os.path.realpath(config['resources'][ORGANISM]['reference']) + '_contigs/complete.lsfout.log',
-        lsferrfile = os.path.realpath(config['resources'][ORGANISM]['reference']) + '_contigs/complete.lsferr.log',
+        lsfoutfile = config['resources'][ORGANISM]['reference'] + '_contigs/complete.lsfout.log',
+        lsferrfile = config['resources'][ORGANISM]['reference'] + '_contigs/complete.lsferr.log',
         scratch = config['tools']['extractContigs']['scratch'],
         mem = config['tools']['extractContigs']['mem'],
         time = config['tools']['extractContigs']['time'],
     threads:
-        int(config['tools']['extractContigs']['threads'])
+        config['tools']['extractContigs']['threads']
     benchmark:
-        os.path.realpath(config['resources'][ORGANISM]['reference']) + '_contigs/complete.benchmark'
+        config['resources'][ORGANISM]['reference'] + '_contigs/complete.benchmark'
     shell:
         '{config[tools][extractContigs][call]} {input.fasta} && touch {output.suc}'
 
-#TODO: This needs to be adapted to work for different organisms and versions
-BICSEQMAPPINGCHROM = sorted([file.replace(config['resources'][ORGANISM]['pathBicSeq2Mappability'], '').strip().split('.')[-2] for file in glob.glob(config['resources'][ORGANISM]['pathBicSeq2Mappability'] + '/*.txt')])
 
 rule craeteConfigBicSeqNorm:
     input:
-        suc = os.path.realpath(config['resources'][ORGANISM]['reference']) + '_contigs/complete.txt'
+        suc = config['resources'][ORGANISM]['reference'] + '_contigs/complete.txt'
     output:
         config = BICSEQ2OUT + '{sample}/configNorm.txt'
     params:
@@ -69,15 +67,17 @@ rule craeteConfigBicSeqNorm:
         mem = config['tools']['bicSeqConfigNorm']['mem'],
         time = config['tools']['bicSeqConfigNorm']['time'],
         sample = '{sample}',
-        reference = os.path.realpath(config['resources'][ORGANISM]['reference']),
-        mappabilityFile = os.path.realpath(config['resources'][ORGANISM]['pathBicSeq2Mappability'])
+        reference = config['resources'][ORGANISM]['reference'],
+        mappabilityFile = config['resources'][ORGANISM]['pathBicSeq2Mappability']
     threads:
-        int(config['tools']['bicSeqConfigNorm']['threads'])
+        config['tools']['bicSeqConfigNorm']['threads']
     benchmark:
         BICSEQ2OUT + '{sample}/configNorm.txt.benchmark'
     run:
         outfile = open(output.config, 'w')
         outfile.write('chromName\tfaFile\tMapFile\treadPosFile\tbinFileNorm\n')
+        #TODO: This needs to be adapted to work for different organisms and versions
+        BICSEQMAPPINGCHROM = sorted([file.replace(config['resources'][ORGANISM]['pathBicSeq2Mappability'], '').strip().split('.')[-2] for file in glob.glob(config['resources'][ORGANISM]['pathBicSeq2Mappability'] + '/*.txt')])
         for chr in BICSEQMAPPINGCHROM:
             outfile.write(chr + '\t')
             outfile.write(params.reference + '_contigs/' + chr + '.fasta' + '\t')
@@ -103,7 +103,7 @@ rule bicSeq_norm:
         readLength = config['tools']['bicseq2']['norm']['readLength'],
         directory = BICSEQ2OUT + '{sample}'
     threads:
-        int(config['tools']['bicseq2']['norm']['threads'])
+        config['tools']['bicseq2']['norm']['threads']
     benchmark:
         BICSEQ2OUT + '{sample}/paramsEstimate.txt.benchmark'
     shell:
@@ -117,7 +117,7 @@ rule bicSeq_norm:
 
 rule craeteConfigBicSeqSeg:
     input:
-        suc = os.path.realpath(config['resources'][ORGANISM]['reference']) + '_contigs/complete.txt'
+        suc = config['resources'][ORGANISM]['reference'] + '_contigs/complete.txt'
     output:
         config = BICSEQ2OUT + '{tumor}_vs_{normal}/configSeg.txt'
     params:
@@ -129,12 +129,14 @@ rule craeteConfigBicSeqSeg:
         normal = '{normal}',
         tumor = '{tumor}'
     threads:
-        int(config['tools']['bicSeqConfigSeq']['threads'])
+        config['tools']['bicSeqConfigSeq']['threads']
     benchmark:
         BICSEQ2OUT + '{tumor}_vs_{normal}/configSeg.txt.benchmark'
     run:
         outfile = open(output.config, 'w')
         outfile.write('chromName\tbinFileNorm.Case\tbinFileNorm.Control\n')
+        #TODO: This needs to be adapted to work for different organisms and versions
+        BICSEQMAPPINGCHROM = sorted([file.replace(config['resources'][ORGANISM]['pathBicSeq2Mappability'], '').strip().split('.')[-2] for file in glob.glob(config['resources'][ORGANISM]['pathBicSeq2Mappability'] + '/*.txt')])
         for chr in BICSEQMAPPINGCHROM:
             outfile.write(chr + '\t')
             outfile.write(BICSEQ2OUT + params.tumor + '/' + chr + '.norm.bin\t')
@@ -158,7 +160,7 @@ rule bicSeq_seg:
         time = config['tools']['bicseq2']['seg']['time'],
         title = '{tumor}_vs_{normal}_CNV'
     threads:
-        int(config['tools']['bicseq2']['seg']['threads'])
+        config['tools']['bicseq2']['seg']['threads']
     benchmark:
         BICSEQ2OUT + '{tumor}_vs_{normal}.cnvsRaw.txt.benchmark'
     shell:
@@ -186,7 +188,7 @@ rule bicSeq_genotype:
         mem = config['tools']['bicseq2']['genotype']['mem'],
         time = config['tools']['bicseq2']['genotype']['time']
     threads:
-        int(config['tools']['bicseq2']['genotype']['threads'])
+        config['tools']['bicseq2']['genotype']['threads']
     benchmark:
         BICSEQ2OUT + '{sample}.cnvsGenotype.txt.benchmark'
     shell:
@@ -208,7 +210,7 @@ rule bicSeq_filter:
         time = config['tools']['bicseq2']['filter']['time'],
         pvalue = config['tools']['bicseq2']['filter']['pvalueThreshold']
     threads:
-        int(config['tools']['bicseq2']['filter']['threads'])
+        config['tools']['bicseq2']['filter']['threads']
     benchmark:
         BICSEQ2OUT + '{sample}.filtered.txt.benchmark'
     shell:
@@ -234,7 +236,7 @@ rule varscanCopyNumber:
         time = config['tools']['varscan']['copyNumber']['time'],
         outputTag = VARSCANCNVOUT + '{tumor}_vs_{normal}' 
     threads:
-        int(config['tools']['varscan']['copyNumber']['threads'])
+        config['tools']['varscan']['copyNumber']['threads']
     benchmark:
         VARSCANCNVOUT + '{tumor}_vs_{normal}.copynumber.benchmark'
     log:
@@ -256,7 +258,7 @@ rule varscanCopyCaller:
         mem = config['tools']['varscan']['copyCaller']['mem'],
         time = config['tools']['varscan']['copyCaller']['time'],
     threads:
-        int(config['tools']['varscan']['copyCaller']['threads'])
+        config['tools']['varscan']['copyCaller']['threads']
     benchmark:
         VARSCANCNVOUT + '{tumor}_vs_{normal}.copynumber.called.benchmark'
     log:
@@ -279,7 +281,7 @@ rule bicSeq2annovar:
         mem = config['tools']['bicSeq2annovar']['mem'],
         time = config['tools']['bicSeq2annovar']['time']
     threads:
-        int(config['tools']['bicSeq2annovar']['threads'])
+        config['tools']['bicSeq2annovar']['threads']
     benchmark:
         BICSEQ2OUT + '{sample}.filtered.forAnnovar.txt.benchmark'
     shell:
@@ -301,7 +303,7 @@ rule wgsAnnovar:
         buildver = config['tools']['annovar']['buildver'],
         out = BICSEQ2OUT + '{sample}.filtered.annotated'
     threads:
-        int(config['tools']['annovar']['threads'])
+        config['tools']['annovar']['threads']
     benchmark:
         BICSEQ2OUT + '{sample}.filtered.annotated.hg19_multianno.txt.benchmark'
     shell:
@@ -329,7 +331,7 @@ rule createBedForFacets:
         mem = config['tools']['facets']['region']['mem'],
         time = config['tools']['facets']['region']['time']
     threads:
-        int(config['tools']['facets']['region']['threads'])
+        config['tools']['facets']['region']['threads']
     benchmark:
         FACETSOUT + 'snps.vcf.benchmark'
     shell:
@@ -353,7 +355,7 @@ rule getSNPInfoForFacets:
         mem = config['tools']['facets']['snpPileup']['mem'],
         time = config['tools']['facets']['snpPileup']['time']
     threads:
-        int(config['tools']['facets']['snpPileup']['threads'])
+        config['tools']['facets']['snpPileup']['threads']
     benchmark:
         FACETSOUT + '{tumor}_vs_{normal}.csv.gz.benchmark'
     shell:
@@ -377,7 +379,7 @@ rule facets:
         mem = config['tools']['facets']['facets']['mem'],
         time = config['tools']['facets']['facets']['time']
     threads:
-        int(config['tools']['facets']['facets']['threads'])
+        config['tools']['facets']['facets']['threads']
     benchmark:
         FACETSOUT + '{tumor}_vs_{normal}.cn.benchmark'
     shell:

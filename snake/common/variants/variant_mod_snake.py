@@ -16,7 +16,7 @@ rule updateVCFHeader:
         mem = config['tools']['updateVCFHeader']['mem'],
         time = config['tools']['updateVCFHeader']['time']
     threads:
-        int(config['tools']['updateVCFHeader']['threads'])
+        config['tools']['updateVCFHeader']['threads']
     benchmark:
         VARSCANUPDATEHEADEROUT + '{sample}.vcf.benchmark'
     shell:
@@ -35,7 +35,7 @@ rule bcftoolsConvert:
         mem = config['tools']['bcftools']['mem'],
         time = config['tools']['bcftools']['time']
     threads:
-        int(config['tools']['bcftools']['threads'])
+        config['tools']['bcftools']['threads']
     benchmark:
         '{sample}.vcf.gz.benchmark'
     shell:
@@ -54,7 +54,7 @@ rule bcftoolsIndex:
         mem = config['tools']['bcftools']['mem'],
         time = config['tools']['bcftools']['time']
     threads:
-        int(config['tools']['bcftools']['threads'])
+        config['tools']['bcftools']['threads']
     benchmark:
         '{sample}.vcf.gz.csi.benchmark'
     shell:
@@ -81,7 +81,7 @@ rule bcftoolsConcat:
         mem = config['tools']['bcftools']['mem'],
         time = config['tools']['bcftools']['time']
     threads:
-        int(config['tools']['bcftools']['threads'])
+        config['tools']['bcftools']['threads']
     benchmark:
         VARSCANCOMPLETEOUT + '{sample}.vcf.benchmark'
     shell:
@@ -106,7 +106,7 @@ rule snpEffAnnotation:
         time = config['tools']['snpEff']['time'],
         dbName = config['tools']['snpEff']['dbName']
     threads:
-        int(config['tools']['snpEff']['threads'])
+        config['tools']['snpEff']['threads']
     benchmark:
         '{sample}.snpEff.vcf.benchmark'
     shell: 
@@ -126,7 +126,7 @@ rule snpSift_dbSNP_Annotation:
         mem = config['tools']['snpSift']['mem'],
         time = config['tools']['snpSift']['time']
     threads:
-        int(config['tools']['snpSift']['threads'])
+        config['tools']['snpSift']['threads']
     benchmark:
         '{sample}.dbSNP.vcf.benchmark'
     shell:
@@ -146,7 +146,7 @@ rule snpSift_clinVar_Annotation:
         mem = config['tools']['snpSift']['mem'],
         time = config['tools']['snpSift']['time']
     threads:
-        int(config['tools']['snpSift']['threads'])
+        config['tools']['snpSift']['threads']
     benchmark:
         '{sample}.clinVar.vcf.benchmark'
     shell:
@@ -156,7 +156,7 @@ rule snpSift_clinVar_Annotation:
 rule snpSift_COSMIC_Annotation:
     input:
         vcf = '{sample}.vcf',
-        cosmicDB  = {config['resources'][ORGANISM]['cosmic']}
+        cosmicDB  = config['resources'][ORGANISM]['cosmic']
     output:
         vcf = '{sample}.cosmic.vcf'
     params:
@@ -166,7 +166,7 @@ rule snpSift_COSMIC_Annotation:
         mem = config['tools']['snpSift']['mem'],
         time = config['tools']['snpSift']['time']
     threads:
-        int(config['tools']['snpSift']['threads'])
+        config['tools']['snpSift']['threads']
     benchmark:
         '{sample}.cosmic.vcf.benchmark'
     shell:
@@ -176,7 +176,7 @@ rule snpSift_COSMIC_Annotation:
 rule snpSift_dbNSFP_Annotation:
     input:
         vcf = '{sample}.vcf',
-        dbNSFPDB  = {config['resources'][ORGANISM]['dbnsfp']}
+        dbNSFPDB  = config['resources'][ORGANISM]['dbnsfp']
     output:
         vcf = '{sample}.annotated.vcf'
     params:
@@ -186,7 +186,7 @@ rule snpSift_dbNSFP_Annotation:
         mem = config['tools']['snpSift']['mem'],
         time = config['tools']['snpSift']['time']
     threads:
-        int(config['tools']['snpSift']['threads'])
+        config['tools']['snpSift']['threads']
     benchmark:
         '{sample}.annotated.vcf.benchmark'
     shell:
@@ -212,7 +212,7 @@ rule filterMutect1Reject:
         mem = config['tools']['simpleMutect1Filter']['mem'],
         time = config['tools']['simpleMutect1Filter']['time']
     threads:
-        int(config['tools']['simpleMutect1Filter']['threads'])
+        config['tools']['simpleMutect1Filter']['threads']
     benchmark:
         MUTECT1FILTEROUT + '{sample}.annotated.pass.vcf.benchmark'
     shell:
@@ -236,7 +236,7 @@ rule filterStrelka:
         mem = config['tools']['strelkaFilter']['mem'],
         time = config['tools']['strelkaFilter']['time']
     threads:
-        int(config['tools']['strelkaFilter']['threads'])
+        config['tools']['strelkaFilter']['threads']
     benchmark:
         STRELKAFILTEROUT + '{sample}.annotated.pass.vcf.benchmark'
     shell:
@@ -267,7 +267,7 @@ rule filterVarScanSomatic:
         filterSilent = config['tools']['varscanSomaticFilter']['filterSilent'],
         lohThreshold = config['tools']['varscanSomaticFilter']['lohThreshold']
     threads:
-        int(config['tools']['varscanSomaticFilter']['threads'])
+        config['tools']['varscanSomaticFilter']['threads']
     benchmark:
         VARSCANSOMATICFILTEROUT + '{sample}.vcf.benchmark'
     shell:
@@ -298,7 +298,7 @@ rule updateNormalTumorName:
         mem = config['tools']['updateNormalTumorName']['mem'],
         time = config['tools']['updateNormalTumorName']['time']
     threads:
-        int(config['tools']['updateNormalTumorName']['threads'])
+        config['tools']['updateNormalTumorName']['threads']
     benchmark:
         '{tumor}_vs_{normal}.correctNames.vcf.benchmark'
     shell:
@@ -318,7 +318,7 @@ rule gatk_variantCombine:
         mem = config['tools']['GATK']['combineVariants']['mem'],
         time = config['tools']['GATK']['combineVariants']['time']
     threads:
-        int(config['tools']['GATK']['combineVariants']['threads'])
+        config['tools']['GATK']['combineVariants']['threads']
     benchmark:
         '{sample}.annotated.vcf.benchmark'
     shell:

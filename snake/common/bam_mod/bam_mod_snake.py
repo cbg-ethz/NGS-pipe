@@ -13,7 +13,7 @@ rule createIndex:
         mem = config['tools']['samtools']['index']['mem'],
         time = config['tools']['samtools']['index']['time']
     threads:
-        int(config['tools']['samtools']['index']['threads'])
+        config['tools']['samtools']['index']['threads']
     benchmark:
         '{sample}.bai.benchmark'
     shell:
@@ -60,7 +60,7 @@ rule fixMatePairAndSort:
     benchmark:
         FIXMATEANDSORTOUT + '{sample}.bam.benchmark'
     threads:
-        int(config['tools']['picard']['fixMateInformation']['threads'])
+        config['tools']['picard']['fixMateInformation']['threads']
     log:
         FIXMATEANDSORTOUT + '{sample}.bam.log'
     shell:
@@ -121,7 +121,7 @@ rule mergeBams:
         time = config['tools']['picard']['mergeBams']['time'],
         input = prependBamsToMerge
     threads:
-        int(config['tools']['picard']['mergeBams']['threads'])
+        config['tools']['picard']['mergeBams']['threads']
     benchmark:
         MERGEBAMSOUT + '{sample}.bam.benchmark'
     log:
@@ -154,7 +154,7 @@ rule removeSecondaryAlignments:
     benchmark:
         NOSECONDARYALNOUT + '{sample}.bam.benchmark'
     threads:
-        int(config['tools']['samtools']['rmSecondary']['threads'])
+        config['tools']['samtools']['rmSecondary']['threads']
     shell:
         '{config[tools][samtools][call]} view -bh -F 256 {input.bam} > {output.bam}'
 
@@ -180,7 +180,7 @@ rule markPCRDuplicates:
         max_records_in_ram = config['tools']['picard']['markduplicates']['max_records_in_ram'],
         max_file_handles_for_read_ends_map = config['tools']['picard']['markduplicates']['max_file_handles_for_read_ends_map']
     threads:
-        int(config['tools']['picard']['markduplicates']['threads'])
+        config['tools']['picard']['markduplicates']['threads']
     benchmark:
         MARKPCRDUBLICATESOUT + '{sample}.bam.benchmark'
     log:
@@ -217,7 +217,7 @@ rule removePCRDuplicates:
         mem = config['tools']['samtools']['rmDuplicates']['mem'],
         time = config['tools']['samtools']['rmDuplicates']['time']
     threads:
-        int(config['tools']['samtools']['rmDuplicates']['threads'])
+        config['tools']['samtools']['rmDuplicates']['threads']
     benchmark:
         REMOVEPCRDUBLICATESOUT + '{sample}.bam.benchmark'
     shell:
@@ -244,7 +244,7 @@ rule reassignOneMappingQualityFilter:
     benchmark:
         REASSIGNONEMAPPINGQUALOUT + '{sample}.bam.benchmark'
     threads:
-        int(config['tools']['GATK']['baseRecalibrator']['threads'])
+        config['tools']['GATK']['baseRecalibrator']['threads']
     shell:
         ('{config[tools][GATK][call]} ' +
         '-T PrintReads ' +
@@ -255,67 +255,6 @@ rule reassignOneMappingQualityFilter:
         '-RMQF {config[tools][GATK][reassignOneMappingQualityFilter][oldQual]} ' +
         '-RMQT {config[tools][GATK][reassignOneMappingQualityFilter][newQual]}')
 
-#rule realignTargetCreation:
-#    input:
-#        bam = REALIGNINDELSIN + '{sample}.bam',
-#        bai = REALIGNINDELSIN + '{sample}.bai'
-#    output:
-#        bed = temp(REALIGNINDELSOUT + '{sample}.bed'),
-#    params:
-#        lsfoutfile = REALIGNINDELSOUT + '{sample}_target_creation.lsfout.log',
-#        lsferrfile = REALIGNINDELSOUT + '{sample}_target_creation.lsferr.log',
-#        reference = {config['resources'][ORGANISM]['reference']},
-#        scratch = config['tools']['GATK']['realignTargetCreator']['scratch'],
-#        mem = config['tools']['GATK']['realignTargetCreator']['mem'],
-#        time = config['tools']['GATK']['realignTargetCreator']['time']
-#    benchmark:
-#        REALIGNINDELSOUT + '{sample}_target_creation.benchmark'
-#    threads:
-#        int(config['tools']['GATK']['realignTargetCreator']['threads'])
-#    shell:
-#        ('{config[tools][GATK][call]} ' +
-#        '-T RealignerTargetCreator ' +
-#        '-R {params.reference} ' +
-#        '-I {input.bam} ' +
-#        '{config[tools][GATK][realignTargetCreator][known1]} ' +
-#        '{config[tools][GATK][realignTargetCreator][known2]} ' +
-#        '-o {output.bed} ' +
-#        '-nt {config[tools][GATK][realignTargetCreator][threads]}')
-#
-#
-## Rule to perform the indel realignment
-## This is a GATK tool
-#ruleorder: realignIndels > createIndex
-#rule realignIndels:
-#    input:
-#        bam = REALIGNINDELSIN + '{sample}.bam',
-#        bai = REALIGNINDELSIN + '{sample}.bai',
-#        interval = REALIGNINDELSOUT + '{sample}.bed',
-#    output:
-#        bam = REALIGNINDELSOUT + '{sample}.bam',
-#        bai = REALIGNINDELSOUT + '{sample}.bai'
-#    params:
-#        lsfoutfile = REALIGNINDELSOUT + '{sample}.lsfout.log',
-#        lsferrfile = REALIGNINDELSOUT + '{sample}.lsferr.log',
-#        reference = {config['resources'][ORGANISM]['reference']},
-#        scratch = config['tools']['GATK']['realignTargetCreator']['scratch'],
-#        mem = config['tools']['GATK']['realignTargetCreator']['mem'],
-#        time = config['tools']['GATK']['realignTargetCreator']['time']
-#    benchmark:
-#        REALIGNINDELSOUT + '{sample}.benchmark'
-#    threads:
-#        int(config['tools']['GATK']['realignTargetCreator']['threads'])
-#    shell:
-#        ('{config[tools][GATK][call]} ' +
-#        '-T IndelRealigner ' +
-#        '-R {params.reference} ' +
-#        '-I {input.bam} ' +
-#        '{config[tools][GATK][realignTargetCreator][known1]} ' +
-#        '{config[tools][GATK][realignTargetCreator][known2]} ' +
-#        '{config[tools][GATK][realignTargetCreator][known3]} ' +
-#        '-o {output.bam} ' +
-#        '-targetIntervals {input.interval}')
-#
 def getSamplesFromExperimentId(wildcards):
     if not 'SAMPLEMAPPING' in globals():
         return ['NOMAPPINGFILE']
@@ -411,7 +350,7 @@ rule realignTargetCreation:
     benchmark:
         REALIGNINDELSOUT + '{experiment}.bed.benchmark'
     threads:
-        int(config['tools']['GATK']['realign']['targetCreator']['threads'])
+        config['tools']['GATK']['realign']['targetCreator']['threads']
     shell:
         ('{config[tools][GATK][call]} ' +
         '-T RealignerTargetCreator ' +
@@ -466,7 +405,7 @@ rule realignIndels:
     benchmark:
         REALIGNINDELSOUT + '{experiment}.realigned.txt.benchmark'
     threads:
-        int(config['tools']['GATK']['realign']['realignIndels']['threads'])
+        config['tools']['GATK']['realign']['realignIndels']['threads']
     shell:
         ('{config[tools][GATK][call]} ' +
         '-T IndelRealigner ' +
@@ -567,7 +506,7 @@ rule firstPassCreateRecalibrationTable:
     benchmark:
         BASERECALIBRATIONOUT + '{sample}_firstPass_reca.table.benchmark'
     threads:
-        int(config['tools']['GATK']['baseRecalibrator']['threads'])
+        config['tools']['GATK']['baseRecalibrator']['threads']
     shell:
         ('{config[tools][GATK][call]} ' +
         '-T BaseRecalibrator ' +
@@ -602,7 +541,7 @@ rule secondPassCreateRecalibrationTable:
     benchmark:
         BASERECALIBRATIONOUT + '{sample}_secondPass_reca.table.benchmark'
     threads:
-        int(config['tools']['GATK']['baseRecalibrator']['threads'])
+        config['tools']['GATK']['baseRecalibrator']['threads']
     shell:
         ('{config[tools][GATK][call]} ' +
         '-T BaseRecalibrator ' +
@@ -634,7 +573,7 @@ rule baseRecalibration:
     benchmark:
         BASERECALIBRATIONOUT + '{sample}.bam.benchmark'
     threads:
-        int(config['tools']['GATK']['baseRecalibrator']['threads'])
+        config['tools']['GATK']['baseRecalibrator']['threads']
     shell:
         ('{config[tools][GATK][call]} ' +
         '-T PrintReads ' +

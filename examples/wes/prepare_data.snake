@@ -31,11 +31,11 @@ FINALTSVNAMES = finalTSVNames()
 
 rule all:
     input: 
-        expand(OUTDIR + 'sra/{id}.sra', id = NAMES),
-        expand(OUTDIR + 'sra/{id}/PAIREDEND/{id}_1.fastq.gz', id = NAMES),
-        expand(OUTDIR + 'sra/{id}/PAIREDEND/{id}_2.fastq.gz', id = NAMES),
-        expand(OUTDIR + '{file}', file = FINALFASTQNAMES),
-        expand(OUTDIR + '{file}', file = FINALTSVNAMES),
+        #expand(OUTDIR + 'sra/{id}.sra', id = NAMES),
+        #expand(OUTDIR + 'sra/{id}/PAIREDEND/{id}_1.fastq.gz', id = NAMES),
+        #expand(OUTDIR + 'sra/{id}/PAIREDEND/{id}_2.fastq.gz', id = NAMES),
+        #expand(OUTDIR + '{file}', file = FINALFASTQNAMES),
+        #expand(OUTDIR + '{file}', file = FINALTSVNAMES),
         '../resources/ucsc.hg19.fasta',
         '../resources/ucsc.hg19.fasta.fai',
         '../resources/ucsc.hg19.dict',

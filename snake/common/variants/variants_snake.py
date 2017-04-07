@@ -14,7 +14,7 @@ rule mpileupBcf:
         lsfoutfile = MPILEUPOUT + '/{sample}.bcf.lsfout.log',
         lsferrfile = MPILEUPOUT + '/{sample}.bcf.lsferr.log'
     threads:
-        int(config['tools']['samtools']['mpileup']['threads'])
+        config['tools']['samtools']['mpileup']['threads']
     benchmark:
         MPILEUPOUT + '/{sample}.bcf.benchmark'
     log:
@@ -45,7 +45,7 @@ rule mpileupMpileup:
         time = config['tools']['samtools']['mpileup']['time'],
         params = config['tools']['samtools']['mpileup']['params']
     threads:
-        int(config['tools']['samtools']['mpileup']['threads'])
+        config['tools']['samtools']['mpileup']['threads']
     benchmark:
         MPILEUPOUT + '{sample}.mpileup.benchmark'
     log:
@@ -73,7 +73,7 @@ rule varscanSnp:
         lsfoutfile = VARSCANSNPOUT + '{sample}.vcf.lsfout.log',
         lsferrfile = VARSCANSNPOUT + '{sample}.vcf.lsferr.log'
     threads:
-        int(config['tools']['varscan']['pileup2snp']['threads'])
+        config['tools']['varscan']['pileup2snp']['threads']
     benchmark:
         VARSCANSNPOUT + '{sample}.vcf.benchmark'
     log:
@@ -104,7 +104,7 @@ rule bcftools:
         lsfoutfile = BCFTOOLSOUT + '{sample}.vcf.lsfout.log',
         lsferrfile = BCFTOOLSOUT + '{sample}.vcf.lsferr.log',
     threads:
-        int(config['tools']['bcftools']['threads'])
+        config['tools']['bcftools']['threads']
     benchmark:
         BCFTOOLSOUT + '{sample}.vcf.benchmark'
     log:
@@ -141,7 +141,7 @@ rule gatkHaplotypeCaller:
         mem = config['tools']['GATK']['haplotypeCaller']['mem'],
         time = config['tools']['GATK']['haplotypeCaller']['time'],
     threads:
-        int(config['tools']['GATK']['haplotypeCaller']['threads'])
+        config['tools']['GATK']['haplotypeCaller']['threads']
     benchmark:
         HAPLOTYPECALLEROUT + '{sample}.g.vcf.benchmark'
     log:
@@ -169,7 +169,7 @@ rule gatkGenotypeGVCFs:
         reference = config['resources'][ORGANISM]['reference'],
         input = getGATKVariantFiles()
     threads:
-        int(config['tools']['GATK']['genotypeGVCFs']['threads'])
+        config['tools']['GATK']['genotypeGVCFs']['threads']
     benchmark:
         HAPLOTYPECALLEROUT + 'combined.vcf.benchmark'
     log:
@@ -206,7 +206,7 @@ rule gatkMutect2:
         time = config['tools']['GATK']['mutect2']['time'],
         threads = config['tools']['GATK']['mutect2']['threads']
     threads:
-        int(config['tools']['GATK']['mutect2']['threads'])
+        config['tools']['GATK']['mutect2']['threads']
     benchmark:
         MUTECT2OUT + '{tumor}_vs_{normal}.vcf.benchmark'
     log:
@@ -271,7 +271,7 @@ rule mutect1:
         normalName = '{normal}',
         dbs = prependDataBasisForRealignMutect()
     threads:
-        int(config['tools']['mutect1']['threads'])
+        config['tools']['mutect1']['threads']
     benchmark:
         MUTECT1OUT + '{tumor}_vs_{normal}.vcf.benchmark'
     log:
@@ -309,7 +309,7 @@ rule varscanSomatic:
         time = config['tools']['varscan']['somatic']['time'],
         outputTag = VARSCANSOMATICOUT + '{tumor}_vs_{normal}' 
     threads:
-        int(config['tools']['varscan']['somatic']['threads'])
+        config['tools']['varscan']['somatic']['threads']
     benchmark:
         VARSCANSOMATICOUT + '{tumor}_vs_{normal}.benchmark'
     log:
@@ -351,7 +351,7 @@ rule strelka:
         outDir = STRELKAOUT,
         outputTag = '{tumor}_vs_{normal}'
     threads:
-        int(config['tools']['strelka']['threads'])
+        config['tools']['strelka']['threads']
     benchmark:
         STRELKAOUT + '{tumor}_vs_{normal}.vcf.benchmark'
     log:
@@ -392,7 +392,7 @@ rule somaticSniper:
         time = config['tools']['somaticSniper']['time'],
         outFormat = config['tools']['somaticSniper']['outFormat']
     threads:
-        int(config['tools']['somaticSniper']['threads'])
+        config['tools']['somaticSniper']['threads']
     benchmark:
         SOMATICSNIPEROUT + '{tumor}_vs_{normal}.vcf.benchmark'
     log:
@@ -433,7 +433,7 @@ rule JointSNVMix2_075_TRAIN:
     benchmark:
         JOINTSNVMIX2_075_OUT + '{tumor}_vs_{normal}_train.jsm.benchmark'
     threads:
-        int(config['tools']['jointSnvMix2_075']['train']['threads'])
+        config['tools']['jointSnvMix2_075']['train']['threads']
     shell:
         ('{config[tools][jointSnvMix2_075][train][call]} ' +
         '{params.method} ' +
@@ -466,7 +466,7 @@ rule JointSNVMix2_075_CLASSIFY:
     benchmark:
         JOINTSNVMIX2_075_OUT + '{tumor}_vs_{normal}_classify.jsm.benchmark'
     threads:
-        int(config['tools']['jointSnvMix2_075']['classify']['threads'])
+        config['tools']['jointSnvMix2_075']['classify']['threads']
     shell:
         ('{config[tools][jointSnvMix2_075][classify][call]} ' +
         '{params.method} ' +
@@ -504,7 +504,7 @@ rule JointSNVMix2_TRAIN:
     benchmark:
         JOINTSNVMIX2OUT + '{tumor}_vs_{normal}_train.jsm.benchmark'
     threads:
-        int(config['tools']['jointSnvMix2']['train']['threads'])
+        config['tools']['jointSnvMix2']['train']['threads']
     shell:
         ('{config[tools][jointSnvMix2][train][call]} ' +
         '{params.minBaseQual} ' +
@@ -538,7 +538,7 @@ rule JointSNVMix2_CLASSIFY:
     benchmark:
         JOINTSNVMIX2OUT + '{tumor}_vs_{normal}_classify.jsm.benchmark'
     threads:
-        int(config['tools']['jointSnvMix2']['classify']['threads'])
+        config['tools']['jointSnvMix2']['classify']['threads']
     shell:
         ('{config[tools][jointSnvMix2][classify][call]} ' +
         '{params.minBaseQual} ' +
@@ -569,7 +569,7 @@ rule createBedForVarDict:
     benchmark:
         VARDICTOUT + 'splitted_regions.bed.benchmark'
     threads:
-        int(config['tools']['varDictSplitBed']['threads'])
+        config['tools']['varDictSplitBed']['threads']
     log:
         VARDICTOUT + 'splitted_regions.bed.log'
     shell:
@@ -597,7 +597,7 @@ rule varDict:
         tumor = '{tumor}',
         normal = '{normal}'
     threads:
-        int(config['tools']['varDict']['threads'])
+        config['tools']['varDict']['threads']
     benchmark:
         VARDICTOUT + '{tumor}_vs_{normal}.vcf.benchmark'
     log:
@@ -641,7 +641,7 @@ rule deepSNV:
         outDir = DEEPSNVOUT,
         params = config['tools']['deepSNV']['params']
     threads:
-        int(config['tools']['deepSNV']['threads'])
+        config['tools']['deepSNV']['threads']
     benchmark:
         DEEPSNVOUT + '{tumor}_vs_{normal}.vcf.benchmark'
     log:
@@ -684,7 +684,7 @@ rule rankCombineVariants:
         mem = config['tools']['rankCombineVariants']['mem'],
         time = config['tools']['rankCombineVariants']['time']
     threads:
-        int(config['tools']['rankCombineVariants']['threads'])
+        config['tools']['rankCombineVariants']['threads']
     benchmark:
         RANKCOMBINEOUT + '{sample}.vcf.benchmark'
     log:

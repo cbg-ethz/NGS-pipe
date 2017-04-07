@@ -65,7 +65,7 @@ if not 'BOWTIEOUT' in globals():
 rule alignUnpairedFilesBowtie2:
     input:
         fastq = BOWTIEIN + '{sample}/PAIREDEND/ORPHAN/{fastq}.fastq.gz',
-        index1 = os.path.realpath(config['resources'][ORGANISM]['bowtie2Index'] + '.1.bt2'),
+        index1 = config['resources'][ORGANISM]['bowtie2Index'] + '.1.bt2',
         index2 = config['resources'][ORGANISM]['bowtie2Index'] + '.2.bt2',
         index3 = config['resources'][ORGANISM]['bowtie2Index'] + '.3.bt2',
         index4 = config['resources'][ORGANISM]['bowtie2Index'] + '.4.bt2',
@@ -88,7 +88,7 @@ rule alignUnpairedFilesBowtie2:
     benchmark:
         BOWTIEOUT + '{sample}/PAIREDEND/ORPHAN/{fastq}.bam.benchmark'
     threads:
-        int(config['tools']['bowtie2']['threads'])
+        config['tools']['bowtie2']['threads']
     log:
         BOWTIEOUT + '{sample}/PAIREDEND/ORPHAN/{fastq}.bam.log'
     shell:
@@ -108,12 +108,12 @@ rule alignPairedFilesBowtie2:
     input:
         fastqR1 = BOWTIEIN + '{sample}/PAIREDEND/{fastq}_R1.fastq.gz',
         fastqR2 = BOWTIEIN + '{sample}/PAIREDEND/{fastq}_R2.fastq.gz',
-        index1 = os.path.realpath(config['resources'][ORGANISM]['bowtie2Index'] + '.1.bt2'),
-        index2 = os.path.realpath(config['resources'][ORGANISM]['bowtie2Index'] + '.2.bt2'),
-        index3 = os.path.realpath(config['resources'][ORGANISM]['bowtie2Index'] + '.3.bt2'),
-        index4 = os.path.realpath(config['resources'][ORGANISM]['bowtie2Index'] + '.4.bt2'),
-        index5 = os.path.realpath(config['resources'][ORGANISM]['bowtie2Index'] + '.rev.1.bt2'),
-        index6 = os.path.realpath(config['resources'][ORGANISM]['bowtie2Index'] + '.rev.2.bt2'),
+        index1 = config['resources'][ORGANISM]['bowtie2Index'] + '.1.bt2',
+        index2 = config['resources'][ORGANISM]['bowtie2Index'] + '.2.bt2',
+        index3 = config['resources'][ORGANISM]['bowtie2Index'] + '.3.bt2',
+        index4 = config['resources'][ORGANISM]['bowtie2Index'] + '.4.bt2',
+        index5 = config['resources'][ORGANISM]['bowtie2Index'] + '.rev.1.bt2',
+        index6 = config['resources'][ORGANISM]['bowtie2Index'] + '.rev.2.bt2',
         tsv = getTSV,
     output:
         bam=temp(BOWTIEOUT + '{sample}/PAIREDEND/{fastq}.bam'),
@@ -131,7 +131,7 @@ rule alignPairedFilesBowtie2:
     benchmark:
         BOWTIEOUT + '{sample}/PAIREDEND/{fastq}.bam.benchmark'
     threads:
-        int(config['tools']['bowtie2']['threads'])
+        config['tools']['bowtie2']['threads']
     log:
         BOWTIEOUT + '{sample}/PAIREDEND/{fastq}.bam.log'
     shell:
@@ -175,7 +175,7 @@ rule alignUnpairedFilesBwa:
     benchmark:
         BWAOUT + '{sample}/PAIREDEND/ORPHAN/{fastq}.bam.benchmark'
     threads:
-        int(config['tools']['bwa']['mem']['threads'])
+        config['tools']['bwa']['mem']['threads']
     log:
         BWAOUT + '{sample}/PAIREDEND/ORPHAN/{fastq}.bam.log'
     shell:
@@ -212,7 +212,7 @@ rule alignPairedFilesBwaMem:
     benchmark:
         BWAOUT + '{sample}/PAIREDEND/{fastq}.bam.benchmark'
     threads:
-        int(config['tools']['bwa']['mem']['threads'])
+        config['tools']['bwa']['mem']['threads']
     log:
         BWAOUT + '{sample}/PAIREDEND/{fastq}.bam.log'
     shell:
@@ -250,7 +250,7 @@ rule alignPairedFilesBwaAln:
     benchmark:
         BWAALNOUT + '{sample}/PAIREDEND/{fastq}.sai.benchmark'
     threads:
-        int(config['tools']['bwa']['aln']['threads'])
+        config['tools']['bwa']['aln']['threads']
     log:
         BWAALNOUT + '{sample}/PAIREDEND/{fastq}.sai.log'
     shell:
@@ -281,7 +281,7 @@ rule alignPairedFilesBwaSampe:
     benchmark:
         BWAALNOUT + '{sample}/PAIREDEND/{fastq}.bam.benchmark'
     threads:
-        int(config['tools']['bwa']['sampe']['threads'])
+        config['tools']['bwa']['sampe']['threads']
     log:
         BWAALNOUT + '{sample}/PAIREDEND/{fastq}.bam.log'
     shell:
@@ -328,7 +328,7 @@ rule alignUnpairedFilesYara:
     benchmark:
         YARAOUT + '{sample}/PAIREDEND/{fastq}_PAIRED.bam.benchmark'
     threads:
-        int(config['tools']['yara']['threads'])
+        config['tools']['yara']['threads']
     log:
         YARAOUT + '{sample}/PAIREDEND/{fastq}_PAIRED.bam.log'
     shell:
@@ -372,7 +372,7 @@ rule alignPairedFilesYara:
     benchmark:
         YARAOUT + '{sample}/PAIREDEND/{fastq}_PAIRED.bam.benchmark'
     threads:
-        int(config['tools']['yara']['threads'])
+        config['tools']['yara']['threads']
     log:
         YARAOUT + '{sample}/PAIREDEND/{fastq}_PAIRED.bam.log'
     shell:
@@ -411,7 +411,7 @@ rule alignPairedFilesSoap:
     benchmark:
         SOAPOUT + '{sample}/PAIREDEND/{fastq}.txt.benchmark'
     threads:
-        int(config['tools']['soap']['threads'])
+        config['tools']['soap']['threads']
     log:
         SOAPOUT + '{sample}/PAIREDEND/{fastq}.txt.log'
     shell:
@@ -441,7 +441,7 @@ rule soap2sam:
     benchmark:
         SOAPOUT + '{sample}/PAIREDEND/{fastq}.bam.benchmark'
     threads:
-        int(config['tools']['soap2sam']['threads'])
+        config['tools']['soap2sam']['threads']
     log:
         SOAPOUT + '{sample}/PAIREDEND/{fastq}.bam.log'
     shell:

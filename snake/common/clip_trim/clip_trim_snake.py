@@ -35,7 +35,7 @@ rule clipTrimPaired:
     benchmark:
         CLIPTRIMOUT + '/{sample}/PAIREDEND/{fastq}.fastq.gz.benchmark'
     threads:
-        int(config['tools']['trimmomatic']['paired']['threads'])
+        config['tools']['trimmomatic']['paired']['threads']
     log:
         stdoutlog = CLIPTRIMOUT + '/{sample}/PAIREDEND/{fastq}.fastq.gz.stdout.log'
     shell:

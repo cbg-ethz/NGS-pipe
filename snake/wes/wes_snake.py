@@ -140,9 +140,9 @@ include: "../common/clip_trim/clip_trim_snake.py"
 include: "../common/align/align_snake.py"
 include: "../common/bam_mod/bam_mod_snake.py"
 include: "../common/stats/stats_snake.py"
-#include: "../common/copy_number/copy_number_snake.py"
+include: "../common/copy_number/copy_number_snake.py"
 include: "../common/variants/variants_snake.py"
-#include: "../common/variants/somatic_seq_snake.py"
+include: "../common/variants/somatic_seq_snake.py"
 include: "../common/variants/variant_mod_snake.py"
 
 # This rule defines which files should be created

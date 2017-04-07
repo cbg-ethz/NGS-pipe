@@ -2,16 +2,16 @@
 localrules: createBedForQualimap
 rule createBedForQualimap:
     input:
-        regions = config['resources'][ORGANISM]['regionsQualimap']
+        regions = config['resources'][ORGANISM]['regions']
     output:
-        regions = config['resources'][ORGANISM]['regionsQualimap'] + '_qual.bed'
+        regions = config['resources'][ORGANISM]['regions'] + '_qual.bed'
     shell:
-        'awk \'{{if(NF > 1){{printf $0; for(i = NF; i < 6; ++i){{printf "\t*"}}; printf "\n"}}}}\' {input.regions} > {output.regions}'
+        'awk \'{{if(NF > 1){{printf $0; for(i = NF; i < 6; ++i){{printf \"\\t*\"}}; printf \"\\n\"}}}}\' {input.regions} > {output.regions}'
 
 rule qualCheckBam:
     input:
         bam = '{sample}.bam',
-        regions = config['resources'][ORGANISM]['regionsQualimap'] + '_qual.bed'
+        regions = config['resources'][ORGANISM]['regions'] + '_qual.bed'
     output:
         dir = '{sample}.bam_stats',
         file = '{sample}.bam_stats/report.pdf'
@@ -24,7 +24,7 @@ rule qualCheckBam:
     benchmark:
         '{sample}.bam_stats/report.pdf.benchmark'
     threads:
-        int(config['tools']['qualimap']['threads'])
+        config['tools']['qualimap']['threads']
     shell:
         'if [[ ! -n $({config[tools][samtools][call]} view {input.bam} | head -n 1) ]]; then touch {output.file}; else {config[tools][qualimap][call]} bamqc -bam {input.bam} -outdir {output.dir} -outfile report.pdf -outformat PDF -os -feature-file {input.regions} --java-mem-size={config[tools][qualimap][mem]}M; fi'
 
@@ -45,7 +45,7 @@ rule analyzeCovariates:
     benchmark:
         BASERECALIBRATIONOUT + '{sample}_base_recalibration_report.pdf.benchmark'
     threads:
-        int(config['tools']['GATK']['analyzeCovariates']['threads'])
+        config['tools']['GATK']['analyzeCovariates']['threads']
     shell:
         '{config[tools][GATK][call]} -T AnalyzeCovariates -R {input.reference} -before {input.tabBefore} -after {input.tabAfter} -plots {output.pdf}'
 
@@ -94,7 +94,7 @@ rule runFlagstat:
         lsfoutfile = '{sample}.bam.flagstat.lsfout.log',
         lsferrfile = '{sample}.bam.flagstat.lsferr.log'
     threads:
-        int(config['tools']['samtools']['flagstat']['threads'])
+        config['tools']['samtools']['flagstat']['threads']
     shell:
         '{config[tools][samtools][call]} flagstat {input.bam} > {output.flagstat}'
 
@@ -115,7 +115,7 @@ rule insertSizeMetric:
     benchmark:
         '{sample}.bam_stats/insert_size_metrics.txt.benchmark'
     threads:
-        int(config['tools']['picard']['collectInsertSizeMetrics']['threads'])
+        config['tools']['picard']['collectInsertSizeMetrics']['threads']
     shell:
         '{config[tools][picard][call]} CollectInsertSizeMetrics I={input.bam} O={output.txt} H={output.pdf}'
 
@@ -135,7 +135,7 @@ rule fastqc:
     benchmark:
         '{fastq}_fastqc.html.benchmark'
     threads:
-        int(config['tools']['fastqc']['threads'])
+        config['tools']['fastqc']['threads']
     shell:
         '{config[tools][fastqc][call]} {input.fastq}'
 
@@ -158,6 +158,6 @@ rule snpHeatmap:
     benchmark:
         HAPLOTYPECALLEROUT + 'combined_dist.pdf.benchmark'
     threads:
-        int(config['tools']['snpHeatmap']['threads'])
+        config['tools']['snpHeatmap']['threads']
     shell:
         '{config[tools][snpHeatmap][call]} {input.vcf} {output.pdf}'
