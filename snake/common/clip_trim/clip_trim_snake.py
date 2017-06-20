@@ -57,3 +57,42 @@ rule clipTrimPaired:
         'MINLEN:{params.minlen} ' +
         '2> {log.stdoutlog} && ' + 
         'gzip {params.trimlog}')
+
+if not 'SEQPURGEIN' in globals():
+    SEQPURGEIN = FASTQDIR
+if not 'SEQPURGEOUT' in globals():
+    SEQPURGEOUT = OUTDIR + 'seqpurge/'
+rule SeqPurge:
+    input:
+        in1 = SEQPURGEIN + '{sample}/PAIREDEND/{fastq}_R1.fastq.gz',
+        in2 = SEQPURGEIN + '{sample}/PAIREDEND/{fastq}_R2.fastq.gz'
+    output:
+        out1 = temp(SEQPURGEOUT + '{sample}/PAIREDEND/{fastq}_R1.fastq.gz'),
+        out2 = temp(SEQPURGEOUT + '{sample}/PAIREDEND/{fastq}_R2.fastq.gz'),
+        out3 = temp(SEQPURGEOUT + '{sample}/PAIREDEND/ORPHAN/{fastq}.fastq.gz'),
+    params:
+        lsfoutfile = SEQPURGEOUT + '/{sample}/PAIREDEND/{fastq}.fastq.gz.lsfout.log',
+        lsferrfile = SEQPURGEOUT + '/{sample}/PAIREDEND/{fastq}.fastq.gz.lsferr.log',
+        scratch = config['tools']['seqpurge']['scratch'],
+        mem = config['tools']['seqpurge']['mem'],
+        time = config['tools']['seqpurge']['time'],
+        a1 = config['tools']['seqpurge']['a1'],
+        a2 = config['tools']['seqpurge']['a2'],
+        params = config['tools']['seqpurge']['params']
+    benchmark:
+        SEQPURGEOUT + '/{sample}/PAIREDEND/{fastq}.fastq.gz.benchmark'
+    threads:
+        config['tools']['seqpurge']['threads']
+    log:
+        SEQPURGEOUT + '/{sample}/PAIREDEND/{fastq}.log'
+    shell:
+        ('{config[tools][seqpurge][call]} ' +
+        '-in1 {input.in1} ' +
+        '-in2 {input.in2} ' +
+        '-out1 {output.out1} ' +
+        '-out2 {output.out2} ' +
+        '-out3 {output.out3} ' +
+        '-a1 {params.a1} ' +
+        '-a2 {params.a2} ' +
+        '-summary {log}; ' +
+        'touch {output.out3}')

@@ -76,7 +76,7 @@ rule fixMatePairAndSort:
 # This functiom creates a list of BAM files created by the read mapper
 def getAlignerBams():
     out = []
-    if CLIPTRIMOUT == FASTQDIR:
+    if config['tools']['picard']['mergeBams']['useOrphans'] != "Y":
         for f in PAIREDFASTQFILESWITHOUTR:
             out.append( f + '.bam')
     else:

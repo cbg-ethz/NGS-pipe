@@ -94,7 +94,7 @@ ruleorder: snpSift_dbNSFP_Annotation > snpSift_COSMIC_Annotation > snpSift_clinV
 rule snpEffAnnotation:
     input:
         vcf = '{sample}.vcf',
-        snpEffDB  = {config['resources'][ORGANISM]['pathSnpEffDB']}
+        snpEffDB  = config['resources'][ORGANISM]['pathSnpEffDB']
     output:
         vcf = '{sample}.snpEff.vcf',
         stats = '{sample}.snpEff.stats.html'
@@ -116,7 +116,7 @@ rule snpEffAnnotation:
 rule snpSift_dbSNP_Annotation:
     input:
         vcf = '{sample}.vcf',
-        dbSnpDB  = {config['resources'][ORGANISM]['dbSNP']}
+        dbSnpDB  = config['resources'][ORGANISM]['dbSNP']
     output:
         vcf = '{sample}.dbSNP.vcf'
     params:
@@ -124,13 +124,14 @@ rule snpSift_dbSNP_Annotation:
         lsferrfile = '{sample}.dbSNP.vcf.lsferr.log',
         scratch = config['tools']['snpSift']['scratch'],
         mem = config['tools']['snpSift']['mem'],
-        time = config['tools']['snpSift']['time']
+        time = config['tools']['snpSift']['time'],
+        params = config['tools']['snpSift']['params']
     threads:
         config['tools']['snpSift']['threads']
     benchmark:
         '{sample}.dbSNP.vcf.benchmark'
     shell:
-        '{config[tools][snpSift][call]} annotate -noLog -noDownload {input.dbSnpDB} {input.vcf} > {output.vcf}'
+        '{config[tools][snpSift][call]} annotate {params.params} {input.dbSnpDB} {input.vcf} > {output.vcf}'
 
 # This rule annotates a vcf file using snpSift and the clinVar database
 rule snpSift_clinVar_Annotation:

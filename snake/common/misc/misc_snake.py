@@ -68,17 +68,44 @@ def getSampleNames():
                     output.append(sample)
     return output
 
-def getSingleFastqFiles():
-    return [file.replace(FASTQDIR, '').replace('.fastq.gz','')for file in glob.glob(FASTQDIR + '*/SINGLEEND/*.fastq.gz')]
-    return [file.replace(FASTQDIR, '').replace('.fastq','')for file in glob.glob(FASTQDIR + '*/SINGLEEND/*.fastq')]
+def checkFilesAgainstSampleNames(files, sampleNames):
+    finalFiles = []
+    for f in files:
+        for name in sampleNames:
+            if name + "/" == f[0:len(name+"/")]:
+                finalFiles.append(f)
 
-def getPairedFastqFiles():
-    return [file.replace(FASTQDIR, '').replace('.fastq.gz','')for file in glob.glob(FASTQDIR + '*/PAIREDEND/*.fastq.gz')]
-    return [file.replace(FASTQDIR, '').replace('.fastq','')for file in glob.glob(FASTQDIR + '*/PAIREDEND/*.fastq')]
+    return finalFiles
 
-def getPairedFastqFilesWithoutR():
-    return [file.replace(FASTQDIR, '').replace('_R1.fastq.gz','')for file in glob.glob(FASTQDIR + '*/PAIREDEND/*_R1.fastq.gz')]
-    return [file.replace(FASTQDIR, '').replace('_R1.fastq','')for file in glob.glob(FASTQDIR + '*/PAIREDEND/*_R1.fastq')]
+def getSingleFastqFiles(SAMPLENAMES):
+    files = [file.replace(FASTQDIR, '').replace('.fastq.gz','')for file in glob.glob(FASTQDIR + '*/SINGLEEND/*.fastq.gz')]
+    if files == []:
+        files = [file.replace(FASTQDIR, '').replace('.fastq','')for file in glob.glob(FASTQDIR + '*/SINGLEEND/*.fastq')]
+
+    return checkFilesAgainstSampleNames(files, SAMPLENAMES)
+
+    #return [file.replace(FASTQDIR, '').replace('.fastq.gz','')for file in glob.glob(FASTQDIR + '*/SINGLEEND/*.fastq.gz')]
+    #return [file.replace(FASTQDIR, '').replace('.fastq','')for file in glob.glob(FASTQDIR + '*/SINGLEEND/*.fastq')]
+
+def getPairedFastqFiles(SAMPLENAMES):
+    files = [file.replace(FASTQDIR, '').replace('.fastq.gz','')for file in glob.glob(FASTQDIR + '*/PAIREDEND/*R[12].fastq.gz')]
+    if files == []:
+        files = [file.replace(FASTQDIR, '').replace('.fastq','')for file in glob.glob(FASTQDIR + '*/PAIREDEND/*R[12].fastq')]
+   
+    return checkFilesAgainstSampleNames(files, SAMPLENAMES)
+
+    #return [file.replace(FASTQDIR, '').replace('.fastq.gz','')for file in glob.glob(FASTQDIR + '*/PAIREDEND/*R[12].fastq.gz')]
+    #return [file.replace(FASTQDIR, '').replace('.fastq','')for file in glob.glob(FASTQDIR + '*/PAIREDEND/*R[12].fastq')]
+
+def getPairedFastqFilesWithoutR(SAMPLENAMES):
+    files = [file.replace(FASTQDIR, '').replace('_R1.fastq.gz','')for file in glob.glob(FASTQDIR + '*/PAIREDEND/*_R1.fastq.gz')]
+    if files == []:
+        files = [file.replace(FASTQDIR, '').replace('_R1.fastq','')for file in glob.glob(FASTQDIR + '*/PAIREDEND/*_R1.fastq')]
+
+    return checkFilesAgainstSampleNames(files, SAMPLENAMES)
+
+    #return [file.replace(FASTQDIR, '').replace('_R1.fastq.gz','')for file in glob.glob(FASTQDIR + '*/PAIREDEND/*_R1.fastq.gz')]
+    #return [file.replace(FASTQDIR, '').replace('_R1.fastq','')for file in glob.glob(FASTQDIR + '*/PAIREDEND/*_R1.fastq')]
 
 def getNormalTumorFiles():
     if not 'SAMPLEMAPPING' in globals():
