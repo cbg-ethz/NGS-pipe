@@ -107,7 +107,7 @@
             "threads": 1
         },
         "qualimap":{
-            "call": "/cluster/work/bewi/modules/qualimap/qualimap-build-05-02-17/qualimap-build-05-02-17/qualimap ",
+            "call": "../tools/qualimap_v2.2.1/qualimap ",
             "threads": 2,
             "mem": "24000",
             "time": "1400",
