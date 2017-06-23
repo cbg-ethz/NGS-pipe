@@ -204,6 +204,7 @@ rule snpHeatmap:
     input:
         vcf = HAPLOTYPECALLEROUT + 'combined.vcf',
     output:
+        tsv = temp(HAPLOTYPECALLEROUT + 'combined_dist.tsv'),
         pdf = HAPLOTYPECALLEROUT + 'combined_dist.pdf',
     params:
         lsfoutfile = HAPLOTYPECALLEROUT + 'combined_dist.pdf.lsfout.log',
@@ -216,4 +217,5 @@ rule snpHeatmap:
     threads:
         config['tools']['snpHeatmap']['threads']
     shell:
-        '{config[tools][snpHeatmap][call]} {input.vcf} {output.pdf}'
+        ('{config[tools][snpHeatmap][prepare]} {input.vcf} {output.tsv}; ' + 
+        '{config[tools][snpHeatmap][call]} {output.tsv} {output.pdf}')
