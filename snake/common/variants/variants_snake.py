@@ -186,7 +186,7 @@ if not 'MUTECT2IN' in globals():
     MUTECT2IN = BASERECALIBRATIONOUT
 if not 'MUTECT2OUT' in globals():
     MUTECT2OUT = OUTDIR + 'variants/mutect2/'
-rule gatkMutect2:
+rule gatk_mutect_2:
     input:
         tumor = MUTECT2IN + '{tumor}.bam',
         tumorIdx = MUTECT2IN + '{tumor}.bai',
@@ -245,7 +245,7 @@ if not 'MUTECT1IN' in globals():
     MUTECT1IN = BASERECALIBRATIONOUT
 if not 'MUTECT1OUT' in globals():
     MUTECT1OUT = OUTDIR + 'variants/mutect1/raw/'
-rule mutect1:
+rule mutect_1:
     input:
         tumor = MUTECT1IN + '{tumor}.bam',
         tumorIdx = MUTECT1IN + '{tumor}.bai',
@@ -294,7 +294,7 @@ if not 'VARSCANSOMATICIN' in globals():
     VARSCANSOMATICIN = MPILEUPOUT
 if not 'VARSCANSOMATICOUT' in globals():
     VARSCANSOMATICOUT = OUTDIR + 'variants/varscan_somatic/raw/'
-rule varscanSomatic:
+rule varscan_somatic:
     input:
         tumor = VARSCANSOMATICIN + '{tumor}.mpileup',
         normal = VARSCANSOMATICIN + '{normal}.mpileup'
@@ -375,7 +375,7 @@ if not 'SOMATICSNIPERIN' in globals():
     SOMATICSNIPERIN = BASERECALIBRATIONOUT
 if not 'SOMATICSNIPEROUT' in globals():
     SOMATICSNIPEROUT = OUTDIR + 'variants/somaticSniper/raw/'
-rule somaticSniper:
+rule somatic_sniper:
     input:
         tumor = SOMATICSNIPERIN + '{tumor}.bam',
         tumorIdx = SOMATICSNIPERIN + '{tumor}.bai',
@@ -480,7 +480,7 @@ if not 'JOINTSNVMIX2IN' in globals():
     JOINTSNVMIX2IN = BASERECALIBRATIONOUT
 if not 'JOINTSNVMIX2OUT' in globals():
     JOINTSNVMIX2OUT = OUTDIR + 'variants/jointSNVMix2/raw/'
-rule JointSNVMix2_TRAIN:
+rule joint_SNVMix_2_TRAIN:
     input:
         tumor = JOINTSNVMIX2IN + '{tumor}.bam', 
         tumorIdx = JOINTSNVMIX2IN + '{tumor}.bai', 
@@ -518,7 +518,7 @@ rule JointSNVMix2_TRAIN:
         '{input.tumor} ' +
         '{output.jsm}')
 
-rule JointSNVMix2_CLASSIFY:
+rule joint_SNVMix_2_CLASSIFY:
     input:
         tumor = JOINTSNVMIX2IN + '{tumor}.bam', 
         normal = JOINTSNVMIX2IN + '{normal}.bam',
@@ -577,7 +577,7 @@ rule createBedForVarDict:
         '-infile {input.regions} ' +
         '-outfile {output.bed}') 
 
-rule varDict:
+rule vardict:
     input:
         tumor = VARDICTIN + '{tumor}.bam',
         tumorIdx = VARDICTIN + '{tumor}.bai',
@@ -672,7 +672,7 @@ def getVcfsForRankComination(wildcards):
 
 if not 'RANKCOMBINEOUT' in globals():
     RANKCOMBINEOUT = OUTDIR + 'variants/rank_combine/'
-rule rankCombineVariants:
+rule rank_combine_variants:
     input:
         vcfs = getVcfsForRankComination
     output:

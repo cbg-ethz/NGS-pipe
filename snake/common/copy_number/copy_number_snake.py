@@ -222,7 +222,7 @@ if not 'VARSCANCNVIN' in globals():
     VARSCANCNVIN = MPILEUPOUT
 if not 'VARSCANCNVOUT' in globals():
     VARSCANCNVOUT = OUTDIR + 'copy_number/varscan_cnv/'
-rule varscanCopyNumber:
+rule varscan_copy_number:
     input:
         tumor = VARSCANCNVIN + '{tumor}.mpileup',
         normal = VARSCANCNVIN + '{normal}.mpileup'
@@ -246,7 +246,7 @@ rule varscanCopyNumber:
         '{config[tools][varscan][copyNumber][params]}')
 
 # call VarScan copyCaller
-rule varscanCopyCaller:
+rule varscan_copy_caller:
     input:
         rawCN = VARSCANCNVOUT + '{tumor}_vs_{normal}.copynumber'
     output:

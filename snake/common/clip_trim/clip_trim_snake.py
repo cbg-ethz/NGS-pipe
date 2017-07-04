@@ -4,7 +4,7 @@ if not 'CLIPTRIMIN' in globals():
     CLIPTRIMIN = FASTQDIR
 if not 'CLIPTRIMOUT' in globals():
     CLIPTRIMOUT = OUTDIR + 'cliptrim/'
-rule clipTrimPaired:
+rule trimmomatic_paired:
     input:
         forward = CLIPTRIMIN + '{sample}/PAIREDEND/{fastq}_R1.fastq.gz',
         reverse = CLIPTRIMIN + '{sample}/PAIREDEND/{fastq}_R2.fastq.gz',
@@ -58,11 +58,52 @@ rule clipTrimPaired:
         '2> {log.stdoutlog} && ' + 
         'gzip {params.trimlog}')
 
+rule trimmomatic_single:
+    input:
+        fastq = FASTQFOLDER + '{sample}/SINGLEEND/{fastq}.fastq.gz',
+        adapter = config['trimmomatic']['single']['rnaadapterfile']
+    output:
+        temp(CLIPTRIMOUT + '{sample}/SINGLEEND/{fastq}.fastq.gz')
+    params:
+        slidingwindow = config['trimmomatic']['single']['slidingwindow'],
+        phred = config['trimmomatic']['single']['phred'],
+        mode = config['trimmomatic']['single']['mode'],
+        minQual = config['trimmomatic']['single']['minQual'],
+        seedmismatches = config['trimmomatic']['single']['seedmismatches'],
+        palindrom = config['trimmomatic']['single']['palindrom'],
+        score = config['trimmomatic']['single']['score'],
+        minlen = config['trimmomatic']['single']['minlen'],
+        lsfoutfile = CLIPTRIMOUT + '{sample}/SINGLEEND/{fastq}_clipTrim.lsfout.log',
+        lsferrfile = CLIPTRIMOUT + '{sample}/SINGLEEND/{fastq}_clipTrim.lsferr.log',
+        scratch = config['trimmomatic']['scratch'],
+        mem = config['trimmomatic']['mem'],
+        time = config['trimmomatic']['time']
+    benchmark:
+        CLIPTRIMOUT + '{sample}/SINGLEEND/{fastq}.benchmark'
+    threads:
+        int(config['trimmomatic']['single']['threads'])
+    log:
+        trimlog = CLIPTRIMOUT + '{sample}/SINGLEEND/{fastq}_clipTrim.log',
+        stdoutlog = CLIPTRIMOUT + '{sample}/SINGLEEND/{fastq}_clipTrim.stdout.log'
+    shell:
+        ('{config[trimmomatic][call]} ' + 
+        '{params.mode} ' + 
+        '{params.phred} ' + 
+        '-threads {threads} ' + 
+        '{input.fastq} ' + 
+        '{output} ' + 
+        'ILLUMINACLIP:{input.adapter}:{params.seedmismatches}:{params.palindrom}:{params.score} ' + 
+        'SLIDINGWINDOW:{params.slidingwindow}:{params.minQual} ' + 
+        'LEADING:{params.minQual} ' + 
+        'TRAILING:{params.minQual} ' + 
+        'MINLEN:{params.minlen} ' + 
+        '2> {log.stdoutlog}')
+
 if not 'SEQPURGEIN' in globals():
     SEQPURGEIN = FASTQDIR
 if not 'SEQPURGEOUT' in globals():
     SEQPURGEOUT = OUTDIR + 'seqpurge/'
-rule SeqPurge:
+rule seqpurge_paired:
     input:
         in1 = SEQPURGEIN + '{sample}/PAIREDEND/{fastq}_R1.fastq.gz',
         in2 = SEQPURGEIN + '{sample}/PAIREDEND/{fastq}_R2.fastq.gz'

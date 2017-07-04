@@ -8,7 +8,7 @@ rule createBedForQualimap:
     shell:
         'awk \'{{sub(/\r/,\"\"); if(NF > 1){{printf $0; for(i = NF; i < 6; ++i){{printf \"\\t*\"}}; printf \"\\n\"}}}}\' {input.regions} > {output.regions}'
 
-rule qualCheckBamPDF:
+rule qualimap_PDF:
     input:
         bam = '{sample}.bam',
         regions = config['resources'][ORGANISM]['regions'] + '_qual.bed'
@@ -28,7 +28,7 @@ rule qualCheckBamPDF:
     shell:
         'if [[ ! -n $({config[tools][samtools][call]} view {input.bam} | head -n 1) ]]; then touch {output.file}; else {config[tools][qualimap][call]} bamqc -bam {input.bam} -outdir {output.dir} -outformat PDF -os -feature-file {input.regions} --java-mem-size={config[tools][qualimap][mem]}M; fi'
 
-rule qualCheckBamHTML:
+rule qualimap_HTML:
     input:
         bam = '{sample}.bam',
         regions = config['resources'][ORGANISM]['regions'] + '_qual.bed'
@@ -138,7 +138,7 @@ rule countReadsInFastq:
     shell:
         'zcat {input.fastq} | wc -l | awk \'{{print $1/4}}\' > {output.count}'
 
-rule runFlagstat:
+rule samtools_flagstat:
     input:
         bam = '{sample}.bam',
     output:

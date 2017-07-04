@@ -62,7 +62,7 @@ if not 'BOWTIEIN' in globals():
     BOWTIEIN = CLIPTRIMOUT
 if not 'BOWTIEOUT' in globals():
     BOWTIEOUT = OUTDIR + 'bowtie2_out/'
-rule alignUnpairedFilesBowtie2:
+rule bowtie2_single:
     input:
         fastq = BOWTIEIN + '{sample}/PAIREDEND/ORPHAN/{fastq}.fastq.gz',
         index1 = config['resources'][ORGANISM]['bowtie2Index'] + '.1.bt2',
@@ -104,7 +104,7 @@ rule alignUnpairedFilesBowtie2:
         '{config[tools][samtools][call]} view -bhS - >{output.bam}')
 
 # This rule aligns paired reads using bowtie2
-rule alignPairedFilesBowtie2:
+rule bowtie2_paired:
     input:
         fastqR1 = BOWTIEIN + '{sample}/PAIREDEND/{fastq}_R1.fastq.gz',
         fastqR2 = BOWTIEIN + '{sample}/PAIREDEND/{fastq}_R2.fastq.gz',
@@ -152,7 +152,7 @@ if not 'BWAIN' in globals():
     BWAIN = CLIPTRIMOUT
 if not 'BWAOUT' in globals():
     BWAOUT = OUTDIR + 'bwa/'
-rule alignUnpairedFilesBwa:
+rule bwa_mem_single:
     input:
         fastq = BWAIN + '{sample}/PAIREDEND/ORPHAN/{fastq}.fastq.gz',
         index1 = config['resources'][ORGANISM]['bwaIndex'] + '.amb',
@@ -188,7 +188,7 @@ rule alignUnpairedFilesBwa:
         '2>{log} | {config[tools][samtools][call]} view -bhS - > {output.bam}')
 
 # This rule aligns unpaired reads using bwa-mem
-rule alignPairedFilesBwaMem:
+rule bwa_mem_paired:
     input:
         fastqR1 = BWAIN + '{sample}/PAIREDEND/{fastq}_R1.fastq.gz',
         fastqR2 = BWAIN + '{sample}/PAIREDEND/{fastq}_R2.fastq.gz',
@@ -229,7 +229,7 @@ if not 'BWAALNIN' in globals():
     BWAALNIN = CLIPTRIMOUT
 if not 'BWAALNOUT' in globals():
     BWAALNOUT = OUTDIR + 'bwa_aln/'
-rule alignPairedFilesBwaAln:
+rule bwa_aln:
     input:
         fastq = BWAALNIN + '{sample}/PAIREDEND/{fastq}.fastq.gz',
         index1 = config['resources'][ORGANISM]['bwaIndex'] + '.amb',
@@ -261,7 +261,7 @@ rule alignPairedFilesBwaAln:
         '{input.fastq} ' +
         '2>{log}| > {output.sai}')
 
-rule alignPairedFilesBwaSampe:
+rule bwa_sampe:
     input:
         sai1 = BWAALNOUT + '{sample}/PAIREDEND/{fastq}_R1.sai',
         fastq_R1 = BWAALNIN + '{sample}/PAIREDEND/{fastq}_R1.fastq.gz',
@@ -299,7 +299,7 @@ if not 'YARAIN' in globals():
     YARAIN = OUTDIR + '.yara_in'
 if not 'YARAOUT' in globals():
     YARAOUT = OUTDIR + '.yara_out'
-rule alignUnpairedFilesYara:
+rule yara_single:
     input:
         fastq = YARAIN + '{sample}/PAIREDEND/{fastq}_UNPAIRED.fastq.gz',
         index1 = config['resources'][ORGANISM]['yaraIndex'] + '.lf.drp',
@@ -342,7 +342,7 @@ rule alignUnpairedFilesYara:
         '2> {log}')
 
 # This rule aligns paired reads using yara
-rule alignPairedFilesYara:
+rule yara_paired:
     input:
         fastqR1 = YARAIN + '{sample}/PAIREDEND/{fastq}_R1_PAIRED.fastq.gz',
         fastqR2 = YARAIN + '{sample}/PAIREDEND/{fastq}_R2_PAIRED.fastq.gz',
@@ -386,12 +386,12 @@ rule alignPairedFilesYara:
         '{input.fastqR2} ' +
         '2> {log}')
 
-# This rule aligns unpaired reads using bwa-mem
+# This rule aligns paired reads using soap
 if not 'SOAPIN' in globals():
     SOAPIN = OUTDIR + '.yara_in'
 if not 'SOAPOUT' in globals():
     SOAPOUT = OUTDIR + '.soap_out'
-rule alignPairedFilesSoap:
+rule soap_paired:
     input:
         fastqR1 = SOAPIN + '{sample}/PAIREDEND/{fastq}_R1.fastq',
         fastqR2 = SOAPIN + '{sample}/PAIREDEND/{fastq}_R2.fastq',
@@ -406,8 +406,7 @@ rule alignPairedFilesSoap:
         mem = config['tools']['soap']['memory'],
         time = config['tools']['soap']['time'],
         params = config['tools']['soap']['params'],
-        index = config['resources'][ORGANISM]['soapIndex'],
-        rg = createReadGroupBwa
+        index = config['resources'][ORGANISM]['soapIndex']
     benchmark:
         SOAPOUT + '{sample}/PAIREDEND/{fastq}.txt.benchmark'
     threads:
@@ -425,7 +424,7 @@ rule alignPairedFilesSoap:
         '{params.params} ')
 
 # This rule aligns unpaired reads using bwa-mem
-rule soap2sam:
+rule soap2bam:
     input:
         txt = SOAPOUT + '{sample}/PAIREDEND/{fastq}.txt',
         fai = config['resources'][ORGANISM]['referenceFai']
@@ -436,8 +435,7 @@ rule soap2sam:
         lsferrfile = SOAPOUT + '{sample}/PAIREDEND/{fastq}.bam.lsferr.log',
         scratch = config['tools']['soap2sam']['scratch'],
         mem = config['tools']['soap2sam']['memory'],
-        time = config['tools']['soap2sam']['time'],
-        rg = createReadGroupBwa
+        time = config['tools']['soap2sam']['time']
     benchmark:
         SOAPOUT + '{sample}/PAIREDEND/{fastq}.bam.benchmark'
     threads:
