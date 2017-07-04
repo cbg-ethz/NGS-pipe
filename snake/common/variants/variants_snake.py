@@ -186,7 +186,7 @@ if not 'MUTECT2IN' in globals():
     MUTECT2IN = BASERECALIBRATIONOUT
 if not 'MUTECT2OUT' in globals():
     MUTECT2OUT = OUTDIR + 'variants/mutect2/'
-rule gatk_mutect_2:
+rule gatkMutect2:
     input:
         tumor = MUTECT2IN + '{tumor}.bam',
         tumorIdx = MUTECT2IN + '{tumor}.bai',
@@ -245,7 +245,7 @@ if not 'MUTECT1IN' in globals():
     MUTECT1IN = BASERECALIBRATIONOUT
 if not 'MUTECT1OUT' in globals():
     MUTECT1OUT = OUTDIR + 'variants/mutect1/raw/'
-rule mutect_1:
+rule mutect1:
     input:
         tumor = MUTECT1IN + '{tumor}.bam',
         tumorIdx = MUTECT1IN + '{tumor}.bai',
@@ -294,7 +294,7 @@ if not 'VARSCANSOMATICIN' in globals():
     VARSCANSOMATICIN = MPILEUPOUT
 if not 'VARSCANSOMATICOUT' in globals():
     VARSCANSOMATICOUT = OUTDIR + 'variants/varscan_somatic/raw/'
-rule varscan_somatic:
+rule varscanSomatic:
     input:
         tumor = VARSCANSOMATICIN + '{tumor}.mpileup',
         normal = VARSCANSOMATICIN + '{normal}.mpileup'
@@ -375,7 +375,7 @@ if not 'SOMATICSNIPERIN' in globals():
     SOMATICSNIPERIN = BASERECALIBRATIONOUT
 if not 'SOMATICSNIPEROUT' in globals():
     SOMATICSNIPEROUT = OUTDIR + 'variants/somaticSniper/raw/'
-rule somatic_sniper:
+rule somaticSniper:
     input:
         tumor = SOMATICSNIPERIN + '{tumor}.bam',
         tumorIdx = SOMATICSNIPERIN + '{tumor}.bai',
@@ -480,7 +480,7 @@ if not 'JOINTSNVMIX2IN' in globals():
     JOINTSNVMIX2IN = BASERECALIBRATIONOUT
 if not 'JOINTSNVMIX2OUT' in globals():
     JOINTSNVMIX2OUT = OUTDIR + 'variants/jointSNVMix2/raw/'
-rule joint_SNVMix_2_TRAIN:
+rule JointSNVMix2_TRAIN:
     input:
         tumor = JOINTSNVMIX2IN + '{tumor}.bam', 
         tumorIdx = JOINTSNVMIX2IN + '{tumor}.bai', 
@@ -518,7 +518,7 @@ rule joint_SNVMix_2_TRAIN:
         '{input.tumor} ' +
         '{output.jsm}')
 
-rule joint_SNVMix_2_CLASSIFY:
+rule JointSNVMix2_CLASSIFY:
     input:
         tumor = JOINTSNVMIX2IN + '{tumor}.bam', 
         normal = JOINTSNVMIX2IN + '{normal}.bam',
@@ -555,35 +555,13 @@ if not 'VARDICTIN' in globals():
     VARDICTIN = BASERECALIBRATIONOUT
 if not 'VARDICTOUT' in globals():
     VARDICTOUT = OUTDIR + 'variants/varDict/raw/'
-rule createBedForVarDict:
-    input:
-        regions = config['resources'][ORGANISM]['regions']
-    output:
-        bed = VARDICTOUT + 'splitted_regions.bed'
-    params:
-        lsfoutfile = VARDICTOUT + 'splitted_regions.bed.lsfout.log',
-        lsferrfile = VARDICTOUT + 'splitted_regions.bed.lsferr.log',
-        scratch = config['tools']['varDictSplitBed']['scratch'],
-        mem = config['tools']['varDictSplitBed']['mem'],
-        time = config['tools']['varDictSplitBed']['time']
-    benchmark:
-        VARDICTOUT + 'splitted_regions.bed.benchmark'
-    threads:
-        config['tools']['varDictSplitBed']['threads']
-    log:
-        VARDICTOUT + 'splitted_regions.bed.log'
-    shell:
-        ('{config[tools][varDictSplitBed][call]} ' +
-        '-infile {input.regions} ' +
-        '-outfile {output.bed}') 
-
-rule vardict:
+rule varDict:
     input:
         tumor = VARDICTIN + '{tumor}.bam',
         tumorIdx = VARDICTIN + '{tumor}.bai',
         normal = VARDICTIN + '{normal}.bam',
         normalIdx = VARDICTIN + '{normal}.bai',
-        regions = VARDICTOUT + 'splitted_regions.bed',
+        regions = config['resources'][ORGANISM]['regions'],
         ref = config['resources'][ORGANISM]['reference']
     output:
         vcf = VARDICTOUT + '{tumor}_vs_{normal}.vcf'
@@ -608,7 +586,6 @@ rule vardict:
         '-f {params.minAllelFreq} ' +
         '-h ' + #Print a header row decribing columns
         '-b "{input.tumor}|{input.normal}" ' +
-        '-z 1 ' + # this is so error prone '-z 1' means the BED file is zero bases
         '-Q 1 -c 1 -S 2 -E 3 -g 4 {input.regions} | ' +
         'awk \'NR!=1\' | ' +
         '{config[tools][varDict][varDictTestSomatic]} | ' +
@@ -672,7 +649,7 @@ def getVcfsForRankComination(wildcards):
 
 if not 'RANKCOMBINEOUT' in globals():
     RANKCOMBINEOUT = OUTDIR + 'variants/rank_combine/'
-rule rank_combine_variants:
+rule rankCombineVariants:
     input:
         vcfs = getVcfsForRankComination
     output:
