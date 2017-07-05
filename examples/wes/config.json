@@ -5,10 +5,25 @@
             "referenceFai": "../resources/ucsc.hg19.fasta.fai",
             "referenceDict": "../resources/ucsc.hg19.dict",
             "regions": "../resources/nexterarapidcapture_expandedexome_targetedregions.bed",
-            "bwaIndex": "../resources/ucsc.hg19.fasta"
+            "bwaIndex": "../resources/ucsc.hg19.fasta",
+            "dbSNP": "/cluster/work/bewi/ngs/databases/gatk/bundle_hg19/dbsnp_138.hg19.vcf",
+            "1000G_indels": "/cluster/work/bewi/ngs/databases/gatk/bundle_hg19/1000G_phase1.indels.hg19.sites.vcf",
+            "1000G_omni": "/cluster/work/bewi/ngs/databases/gatk/bundle_hg19/1000G_omni2.5.hg19.sites.vcf",
+            "1000G_snp": "/cluster/work/bewi/ngs/databases/gatk/bundle_hg19/1000G_phase1.snps.high_confidence.hg19.sites.vcf",
+            "Mills_indels": "/cluster/work/bewi/ngs/databases/gatk/bundle_hg19/Mills_and_1000G_gold_standard.indels.hg19.sites.vcf",
+            "hapmap": "/cluster/work/bewi/ngs/databases/gatk/bundle_hg19/hapmap_3.3.hg19.sites.vcf",
+            "cosmic": "/cluster/work/bewi/ngs/databases/cosmic_hg19/cosmic_v80_gatk_header.vcf",
+            "pathSnpEffDB": "/cluster/work/bewi/ngs/databases/snpeff/"
         },
         "general":{
-            "sequencingAdapter": "/path/to/adapters.fa"
+            "sequencingAdapter": "/cluster/work/bewi/modules/Trimmomatic/0.36/adapters/TruSeq2-PE.fa",
+            "jsvmBetaBinParams": "/cluster/work/bewi/ngs/databases/ngs-pipe-links/general/beta_binomial.params.cfg",
+            "jsvmBetaBinPriors": "/cluster/work/bewi/ngs/databases/ngs-pipe-links/general/beta_binomial.priors.cfg",
+            "jsvm_0.7.5_jointPriors": "/cluster/work/bewi/modules/joint-snv-mix/0.7.5/params/joint_priors.cfg",
+            "jsvm_0.7.5_jointParams": "/cluster/work/bewi/modules/joint-snv-mix/0.7.5/params/joint_params.cfg",
+            "gatkKey": "/cluster/work/bewi/ngs/databases/ngs-pipe-links/general/jochen.singer_bsse.ethz.ch.key",
+            "adaclassifier_snp": "/cluster/work/bewi/ngs/tools_hans/somaticsseq_classifier/IS3A.MVJSD.sSNV.tsv.Classifier.RData",
+            "adaclassifier_indel": "/cluster/work/bewi/ngs/tools_hans/somaticsseq_classifier/IS3A.MVJSD.sINDEL.tsv.Classifier.RData"
         }
     },
     "tools":{
@@ -71,6 +86,12 @@
                 "max_records_in_ram": "500000",
                 "max_file_handles_for_read_ends_map": "1000"
             },
+            "sortVCF":{
+                "threads": 1,
+                "mem": "12000",
+                "time": "1400",
+                "scratch": "12000"
+            },
             "fixMateInformation":{
                 "sortOrder": "coordinate",
                 "mem": "12000",
@@ -112,6 +133,264 @@
             "mem": "24000",
             "time": "1400",
             "scratch": "16000"
+        },
+        "GATK":{
+            "call": "/cluster/apps/java/1.7.0_51/x86_64/bin/java -Xmx16G -jar /cluster/apps/vcp/gatk/3.5/x86_64/GenomeAnalysisTK.jar --gatk_key /cluster/work/bewi/ngs/databases/ngs-pipe-links/general/jochen.singer_bsse.ethz.ch.key --phone_home NO_ET ",
+            "realign" : {
+                "targetCreator":{
+                    "threads": 4,
+                    "mem": "6000",
+                    "time": "1400",
+                    "scratch": "8000"
+                },
+                "realignIndels":{
+                    "threads": 1,
+                    "mem": "24000",
+                    "time": "1400",
+                    "scratch": "24000"
+                },
+                "Mills_indels": "Y",
+                "1000G_indels": "Y",
+                "realignFilesFromExperimentTogether" : "Y"
+            },
+            "baseRecalibrator":{
+                "threads": 1,
+                "mem": "24000",
+                "time": "1400",
+                "scratch": "24000",
+                "Mills_indels": "Y",
+                "1000G_indels": "Y",
+                "dbSNP": "Y"
+            },
+            "analyzeCovariates":{
+                "threads": 1,
+                "mem": "16000",
+                "time": "600",
+                "scratch": "16000"
+            },
+            "reassignOneMappingQualityFilter":{
+                "threads": 1,
+                "mem": "16000",
+                "time": "1400",
+                "scratch": "16000",
+                "oldQual": "255",
+                "newQual": "60"
+            },
+            "haplotypeCaller":{
+                "threads": 1,
+                "mem": "16000",
+                "time": "1400",
+                "scratch": "16000"
+            },
+            "genotypeGVCFs":{
+                "threads": 1,
+                "mem": "16000",
+                "time": "1400",
+                "scratch": "16000"
+            },
+            "combineVariants":{
+                "threads": 1,
+                "mem": "5000",
+                "time": "500",
+                "scratch": "5000",
+                "minN": "2",
+                "caller_mutect1": "MUTECT1FILTEROUT + '{sample}.annotated.pass.vcf'",
+                "caller_varScan2somatic": "-resource:1000G,known=false,training=true,truth=false,prior=10.0 $$$resources:ORGANISM:1000G_snp$$$",
+                "resource4": "-resource:dbsnp,known=true,training=false,truth=false,prior=2.0 $$$resources:ORGANISM:dbSNP$$$"
+            },
+            "mutect2":{
+                "threads": 1,
+                "mem": "10000",
+                "time": "1400",
+                "scratch": "16000"
+            }
+        },
+        "mutect1":{
+            "call": "/cluster/apps/java/1.6.0_31/x86_64/bin/java -Xmx10G -jar /cluster/apps/vcp/mutect/1.1.4/x86_64/muTect-1.1.4.jar ",
+            "intervalPadding": "0",
+            "gapOpenPenalty": "40",
+            "scratch": "5000",
+            "mem": "10000",
+            "time": "1400",
+            "threads": 1,
+            "dbSNP": "Y",
+            "cosmic": "Y"
+        },
+        "simpleMutect1Filter":{
+            "call": "sh /cluster/work/bewi/modules/NGS-Pipe/scripts/simpleMutect1Filter.sh ",
+            "scratch": "5000",
+            "mem": "2000",
+            "time": "200",
+            "threads": 1
+        },
+        "snpEff":{
+            "call": "java -Xmx5G -jar /cluster/work/bewi/ngs/tools/snpeff/snpEff/snpEff.jar ",
+            "dbName": "GRCh37.75",
+            "scratch": "5000",
+            "mem": "5000",
+            "time": "1400",
+            "threads": 1,
+            "params4Bed": "-i bed -o bed"
+        },
+        "snpSift":{
+            "call": "java -Xmx5G -jar /cluster/work/bewi/ngs/tools/snpeff/snpEff/SnpSift.jar ",
+            "scratch": "5000",
+            "mem": "5000",
+            "time": "1400",
+            "threads": 1
+        },
+        "jointSnvMix2_075":{
+            "train":{
+                "call": "$$$dirs:tools$$$jsm_0.7.5.py train ",
+                "convergence_threshold": "--convergence_threshold 0.01",
+                "skipSize": "10",
+                "scratch": "64000",
+                "mem": "64000",
+                "time": "4400",
+                "threads": 1
+            },
+            "classify":{
+                "call": "$$$dirs:tools$$$jsm_0.7.5.py classify ",
+                "scratch": "64000",
+                "mem": "64000",
+                "time": "4400",
+                "threads": 1
+            },
+            "method": "joint_snv_mix_two"
+        },
+        "snpHeatmap": {
+            "call": "/cluster/work/bewi/modules/R/3.3.2/bin/Rscript /cluster/home/arhofman/git/NGS-Pipe/scripts/snpHeatmap.R",
+            "scratch": "10000",
+            "mem": "10000",
+            "time": "60",
+            "threads": 1
+        },
+        "facets": {
+            "snpPileup": {
+                "call": "/cluster/work/bewi/modules/FACETS/0.5.6/facets-0.5.6/inst/extcode/snp-pileup",
+                "scratch": "10000",
+                "mem": "10000",
+                "time": "600",
+                "threads": 1,
+                "params": "-g"
+            },
+            "region": {
+                "call": "bedtools intersect ",
+                "scratch": "1000",
+                "mem": "1000",
+                "time": "60",
+                "threads": 1
+            },
+            "facets": {
+                "call": "/cluster/work/bewi/modules/R/3.3.2/bin/Rscript /cluster/home/arhofman/git/NGS-Pipe/scripts/facets.R",
+                "scratch": "10000",
+                "mem": "10000",
+                "time": "60",
+                "threads": 1
+            }
+        },
+        "trimmomatic": {
+            "call": "java -Xmx24G -jar /cluster/work/bewi/ngs/tools/trimmomatic.jar ",
+            "scratch": "1000",
+            "mem": "8000",
+            "time": "640",
+            "paired": {
+                "slidingwindow": "4",
+                "threads": 4,
+                "phred": "-phred33",
+                "mode": "PE",
+                "minQual": "2",
+                "seedmismatches": "1",
+                "palindrom": "30",
+                "min_adapt_len": "1",
+                "keep_both": "true",
+                "minlen": "50",
+                "score": "7",
+                "exampleCommand": "java -Xmx24G -jar trimmomatic-0.30.jar $mode -threads $threads $phred -trimlog $TRIMLOG $F1 $F2 $F1_P $F1_UP $F2_P $F2_UP ILLUMINACLIP:$adapterfile:$seedmismatches:$palindrom:$score:$min_adapt_len:$keep_both  SLIDINGWINDOW:$slidingwindow:$minqual LEADING:$minqual TRAILING:$minqual MINLEN:$minlen"
+            },
+            "single": {
+                "slidingwindow": "4",
+                "threads": 4,
+                "phred": "-phred33",
+                "mode": "SE",
+                "minQual": "2",
+                "adapterfile": "resources/adapters/Illumina_myAdapters_rc_all_SE.fa",
+                "seedmismatches": "1",
+                "palindrom": "30",
+                "minlen": "50",
+                "score": "7",
+                "exampleCommand": "java -Xmx24G -jar trimmomatic-0.30.jar $mode -threads $threads $phred -trimlog $TRIMLOG $F1 $F1_P ILLUMINACLIP:$adapterfile:$seedmismatches:$palindrom:$score  SLIDINGWINDOW:$slidingwindow:$minqual LEADING:$minqual TRAILING:$minqual MINLEN:$minlen"
+            }
+        },
+        "somaticseq": {
+            "jsm2vcf": {
+                "call": "/cluster/work/bewi/ngs/tools_hans/somaticseq/Run_5_callers/individual_callers/JSM2VCF.sh ",
+                "scratch": "1000",
+                "mem": "1000",
+                "time": "235",
+                "threads": "1"
+            },
+            "modifyvjsd": {
+                "call": "python3 /cluster/work/bewi/ngs/tools_hans/somaticseq/modify_VJSD.py ",
+                "scratch": "1000",
+                "mem": "1000",
+                "time": "60",
+                "threads": "1"
+            },
+            "modifymutect": {
+                "call": "python3 /cluster/work/bewi/ngs/tools_hans/somaticseq/modify_MuTect.py ",
+                "scratch": "1000",
+                "mem": "1000",
+                "time": "60",
+                "threads": "1"
+            },
+            "scoresomaticvariants": {
+                "call": "python3 /cluster/work/bewi/ngs/tools_hans/somaticseq/score_Somatic.Variants.py ",
+                "scratch": "10000",
+                "mem": "10000",
+                "time": "235",
+                "threads": "1"
+            },
+            "vcf2tsv": {
+                "call": "python3 /cluster/work/bewi/ngs/tools_hans/somaticseq/SSeq_merged.vcf2tsv.py ",
+                "scratch": "10000",
+                "mem": "10000",
+                "time": "1400",
+                "threads": "1"
+            },
+            "adaclassify": {
+                "call": "/cluster/work/bewi/ngs/tools_hans/somaticseq/r_scripts/ada_model_predictor.R",
+                "scratch": "30000",
+                "mem": "30000",
+                "time": "1400",
+                "threads": "1"
+            },
+            "tsv2vcf": {
+                "call": "python3 /cluster/work/bewi/ngs/tools_hans/somaticseq/SSeq_tsv2vcf.py ",
+                "scratch": "3000",
+                "mem": "3000",
+                "time": "60",
+                "threads": "1"
+            }
+        },
+        "varDict":{
+            "call": "/cluster/work/bewi/modules/VarDictJava/git/build/install/VarDict/bin/VarDict ",
+            "varDictTestSomatic": "/cluster/work/bewi/modules/VarDictJava/git/VarDict/testsomatic.R ",
+            "varDict2VcfPaired": "/cluster/work/bewi/modules/VarDictJava/git/VarDict/var2vcf_paired.pl ",
+            "minAllelFreq": "0.01",
+            "scratch": "20000",
+            "mem": "20000",
+            "time": "1400",
+            "threads": 1
+        },
+        "somaticSniper":{
+            "call": "/cluster/work/bewi/modules/somaticsniper/git/build/bin/bam-somaticsniper ",
+            "params": "-q 25 -Q 15 -s 0.0001",
+            "outFormat": "vcf",
+            "scratch": "16000",
+            "mem": "16000",
+            "time": "1400",
+            "threads": 1
         }
     }
 }

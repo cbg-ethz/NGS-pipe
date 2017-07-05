@@ -3,7 +3,7 @@ from snakemake.utils import R
 
 SAMPLEMAPPING = 'sample_mapping.tsv'
 FASTQDIR = 'sra/'
-OUTDIR   = 'out3/'
+OUTDIR   = 'out/'
 TMPDIR   = 'tmp/'
 
 ORGANISM = 'H_sapiens_hg19'
@@ -19,5 +19,6 @@ NORMALTUMORMATCHING = getNormalTumorFiles()
 
 rule SRA051153:
     input:
-        expand(MERGEBAMSOUT + '{sample}.bam_stats/report.pdf', sample = SAMPLENAMES),
+        'out/complete.txt',
+        expand(REMOVEPCRDUBLICATESOUT + '{sample}.bam_stats/report.pdf', sample = SAMPLENAMES),
         expand(VARSCANSOMATICOUT + '{tumorNormalMatching}.snp.vcf', tumorNormalMatching = NORMALTUMORMATCHING)

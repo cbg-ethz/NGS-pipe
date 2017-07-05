@@ -39,7 +39,7 @@ rule all:
         '../resources/ucsc.hg19.fasta',
         '../resources/ucsc.hg19.fasta.fai',
         '../resources/ucsc.hg19.dict',
-        '../resources/ucsc.hg19.fasta.amb',
+        #'../resources/ucsc.hg19.fasta.amb',
         '../resources/nexterarapidcapture_expandedexome_targetedregions.bed',
         '../tools/qualimap_v2.2.1/qualimap',
         '../tools/FastQC/fastqc',
