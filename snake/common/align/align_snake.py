@@ -59,7 +59,7 @@ def createReadGroupBwa(wildcards):
 
 # This rule aligns unpaired reads using bowtie2
 if not 'BOWTIEIN' in globals():
-    BOWTIEIN = CLIPTRIMOUT
+    BOWTIEIN = FASTQDIR
 if not 'BOWTIEOUT' in globals():
     BOWTIEOUT = OUTDIR + 'bowtie2_out/'
 rule bowtie2_single:
@@ -149,7 +149,7 @@ rule bowtie2_paired:
 
 # This rule aligns unpaired reads using bwa-mem
 if not 'BWAIN' in globals():
-    BWAIN = CLIPTRIMOUT
+    BWAIN = FASTQDIR
 if not 'BWAOUT' in globals():
     BWAOUT = OUTDIR + 'bwa/'
 rule bwa_mem_single:
@@ -226,7 +226,7 @@ rule bwa_mem_paired:
         '2>{log}| {config[tools][samtools][call]} view -bhS - > {output.bam}')
 
 if not 'BWAALNIN' in globals():
-    BWAALNIN = CLIPTRIMOUT
+    BWAALNIN = FASTQDIR
 if not 'BWAALNOUT' in globals():
     BWAALNOUT = OUTDIR + 'bwa_aln/'
 rule bwa_aln:
