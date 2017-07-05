@@ -94,6 +94,7 @@ def getBamsToMerge(wildcards):
         if wildcards.sample == bam.split("/")[0]: 
             out.append(MERGEBAMSIN + bam)
     if not out:
+        #print(wildcards)
         return ['ERROR']
     return out
 
@@ -111,7 +112,7 @@ rule mergeBams:
     input:
         bams = getBamsToMerge
     output:
-        bam = MERGEBAMSOUT + '{sample}.bam'
+        bam = temp(MERGEBAMSOUT + '{sample}.bam')
     params:
         lsfoutfile = MERGEBAMSOUT + '{sample}.bam.lsfout.log',
         lsferrfile = MERGEBAMSOUT + '{sample}.bam.lsferr.log',
@@ -171,14 +172,9 @@ rule markPCRDuplicates:
     params:
         lsfoutfile = MARKPCRDUBLICATESOUT + '{sample}.bam.lsfout.log',
         lsferrfile = MARKPCRDUBLICATESOUT + '{sample}.bam.lsferr.log',
-        removeDuplicates = config['tools']['picard']['markduplicates']['removeDuplicates'],
-        createIndex = config['tools']['picard']['markduplicates']['createIndex'],
         scratch = config['tools']['picard']['markduplicates']['scratch'],
         mem = config['tools']['picard']['markduplicates']['mem'],
-        time = config['tools']['picard']['markduplicates']['time'],
-        assume_sorted = config['tools']['picard']['markduplicates']['assume_sorted'],
-        max_records_in_ram = config['tools']['picard']['markduplicates']['max_records_in_ram'],
-        max_file_handles_for_read_ends_map = config['tools']['picard']['markduplicates']['max_file_handles_for_read_ends_map']
+        time = config['tools']['picard']['markduplicates']['time']
     threads:
         config['tools']['picard']['markduplicates']['threads']
     benchmark:
@@ -191,13 +187,9 @@ rule markPCRDuplicates:
         'MarkDuplicates ' +
         'INPUT={input.bam} ' +
         'OUTPUT={output.bam}  ' +
-        'ASSUME_SORTED={params.assume_sorted} ' +
-        'MAX_FILE_HANDLES_FOR_READ_ENDS_MAP={params.max_file_handles_for_read_ends_map} ' +
-        'MAX_RECORDS_IN_RAM={params.max_records_in_ram} ' +
+        '{config[tools][picard][markduplicates][params]} ' +
         'TMP_DIR={TMPDIR} ' +
         'METRICS_FILE={log.metrics} ' +
-        'REMOVE_DUPLICATES={params.removeDuplicates} ' +
-        'CREATE_INDEX={params.createIndex} ' +
         '2> {log.log}')
 
 # This rule removed the previously marked PCR duplicates
@@ -285,7 +277,7 @@ def getSamplesFromExperimentId(wildcards):
 
     if config['tools']['GATK']['realign']['realignFilesFromExperimentTogether'] == "Y":
         if wildcards.experiment not in expMap.keys():
-            #raise ValueError(wildcards.experiment + " is not a valid experiment ID!")
+            #print("Experiment " + wildcards.experiment + " is unknown!")
             return "UnknownExperiment"
     elif config['tools']['GATK']['realign']['realignFilesFromExperimentTogether'] == "N":
         if wildcards.experiment not in expMap.keys():
@@ -294,12 +286,16 @@ def getSamplesFromExperimentId(wildcards):
     return expMap[wildcards.experiment]
 
 def getBamsFromExperimentId(wildcards):
+    #print("wildcards: ", wildcards)
+    #print("getSamplesFromExperimentId: ", getSamplesFromExperimentId(wildcards))
     return expand('{sample}.bam', sample = getSamplesFromExperimentId(wildcards))
 
 def getBaisFromExperimentId(wildcards):
     return expand('{sample}.bai', sample = getSamplesFromExperimentId(wildcards))
 
 def getBamsToRealingFromExperimentId(wildcards):
+    #print("wildcards: ", wildcards)
+    #print("getBamsFromExperimentId: ", getBamsFromExperimentId(wildcards))
     return expand(REALIGNINDELSIN + '{bam}', bam = getBamsFromExperimentId(wildcards))
 
 def getBaisToRealingFromExperimentId(wildcards):

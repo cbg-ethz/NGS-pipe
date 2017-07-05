@@ -68,6 +68,46 @@ def getSampleNames():
                     output.append(sample)
     return output
 
+def getExperimentNames():
+    output = [] #[samplename.replace(FASTQDIR,'').replace('/','')for samplename in glob.glob(FASTQDIR + '*/')]
+    if output == []:
+        if not 'SAMPLEMAPPING' in globals():
+            return ['NOMAPPINGFILE']
+        try:
+            open(SAMPLEMAPPING, "r")
+        except IOError:
+            return ['NOMAPPINGFILE']
+        sampleMap = dict()
+        with open(SAMPLEMAPPING, "r") as f:
+            for line in f:
+                if line.strip() != "":
+                    lineSplit = line.strip().split()
+                    exp = lineSplit[0]
+                    if not (exp in output):
+                        output.append(exp)
+    return output
+
+def getSampleNamesFromExperimentNames(wildcards):
+    if not 'SAMPLEMAPPING' in globals():
+        return ['NOMAPPINGFILE']
+    try:
+        open(SAMPLEMAPPING, "r")
+    except IOError:
+        return ['NOMAPPINGFILE']
+    expMap = dict()
+    with open(SAMPLEMAPPING, "r") as f:
+        for line in f:
+            if line.strip() != "":
+                lineSplit = line.strip().split()
+                exp = lineSplit[0]
+                sample = lineSplit[1]
+                sampleType = lineSplit[2]
+                tpoint = lineSplit[3]
+                if exp not in expMap.keys():
+                    expMap[exp] = []
+                expMap[exp].append(sample)
+    return expMap[wildcards.experiment]
+
 def checkFilesAgainstSampleNames(files, sampleNames):
     finalFiles = []
     for f in files:
