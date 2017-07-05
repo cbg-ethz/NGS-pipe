@@ -1,0 +1,11 @@
+channels:
+  - bioconda
+  - defaults
+  - conda-forge
+dependencies:
+  - fastqc=0.11.5
+  - samtools=1.2
+  - star=2.5.3a
+  - trimmomatic=0.36
+  - subread=1.5.2
+  - snakemake=3.13.3

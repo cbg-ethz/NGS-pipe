@@ -91,7 +91,7 @@ rule bcftoolsConcat:
 ruleorder: snpSift_dbNSFP_Annotation > snpSift_COSMIC_Annotation > snpSift_clinVar_Annotation > snpSift_dbSNP_Annotation > snpEffAnnotation > updateNormalTumorName > mutect1
 ruleorder: snpSift_dbNSFP_Annotation > snpSift_COSMIC_Annotation > snpSift_clinVar_Annotation > snpSift_dbSNP_Annotation > snpEffAnnotation > updateNormalTumorName > strelka
 # NOTE: all anotation calls could theoretically be combined into one pipe command; however, this could lead to problems when not all databases available!
-rule snpEffAnnotation:
+rule snpEff_annotation:
     input:
         vcf = '{sample}.vcf',
         snpEffDB  = config['resources'][ORGANISM]['pathSnpEffDB']
@@ -134,7 +134,7 @@ rule snpSift_dbSNP_Annotation:
         '{config[tools][snpSift][call]} annotate {params.params} {input.dbSnpDB} {input.vcf} > {output.vcf}'
 
 # This rule annotates a vcf file using snpSift and the clinVar database
-rule snpSift_clinVar_Annotation:
+rule snpSift_clinVar_annotation:
     input:
         vcf = '{sample}.vcf',
         clinVarDB  = {config['resources'][ORGANISM]['clinvar']}
@@ -154,7 +154,7 @@ rule snpSift_clinVar_Annotation:
         '{config[tools][snpSift][call]} annotate -noLog -noDownload {input.clinVarDB} {input.vcf} > {output.vcf}'
         
 # This rule annotates a vcf file using snpSift and the cosmic database
-rule snpSift_COSMIC_Annotation:
+rule snpSift_COSMIC_annotation:
     input:
         vcf = '{sample}.vcf',
         cosmicDB  = config['resources'][ORGANISM]['cosmic']
@@ -174,7 +174,7 @@ rule snpSift_COSMIC_Annotation:
         '{config[tools][snpSift][call]} annotate -noLog -noDownload {input.cosmicDB} {input.vcf} > {output.vcf}'
         
 # This rule annotates a vcf file using snpSift and the dbNSFP database (functional annotation)
-rule snpSift_dbNSFP_Annotation:
+rule snpSift_dbNSFP_annotation:
     input:
         vcf = '{sample}.vcf',
         dbNSFPDB  = config['resources'][ORGANISM]['dbnsfp']
@@ -306,21 +306,50 @@ rule updateNormalTumorName:
         ('tumorName=$(basename {params.tumor}) ; sed \"/^#CHROM/s/TUMOR/$tumorName/\" {input.vcf} > {output.vcf} ; ' +
         'sed -i \"/^#CHROM/s/NORMAL/{params.normal}/\" {output.vcf}')
         
-# This rule combines the variant calls of several callers, using GATK VriantCombine
-rule gatk_variantCombine:
+
+dictCaller = {}  # this dictionary contains for each of the variant callers the location of the vcf desired as input for GATK variant combine
+dictCaller["mutect1"] = MUTECT1FILTEROUT
+dictCaller["varscansomatic"] = VARSCANSOMATICFILTEROUT
+dictCaller["strelka"] = STRELKAFILTEROUT
+
+def getVCFs_forVariantCombine(wildcards):
+    out = []
+    for caller in config['tools']['GATK']['combineVariants']['myCallers'].split(","):
+        if caller not in dictCaller.keys():
+            print("Error! Caller name does not match dict entries!")
+            return("ERROR")
+        out.append(dictCaller[caller] + wildcards.sample + '.vcf')
+    return out
+    
+def getInputString_forVariantCombine(wildcards):
+    out = ""
+    for caller in config['tools']['GATK']['combineVariants']['myCallers'].split(","):
+        if caller not in dictCaller.keys():
+            print("Error! Caller name does not match dict entries!")
+            return("ERROR")
+        out += '--variant:' + caller + ' ' + dictCaller[caller] + wildcards.sample + '.vcf '
+    return out
+
+        
+# This rule combines the variant calls of several callers, using GATK VariantCombine
+rule gatk_variant_combine:
     input:
-        vcf = '{sample}.annotated.vcf'
+        vcfs = getVCFs_forVariantCombine,
+        reference = config['resources'][ORGANISM]['reference']
     output:
-        vcf = '{sample}.combined.vcf'
+        vcf = GATKVARIANTCOMBINEOUT + '{sample}.combined.vcf'
     params:
-        lsfoutfile = '{sample}.annotated.vcf.lsfout.log',
-        lsferrfile = '{sample}.annotated.vcf.lsferr.log',
+        lsfoutfile = GATKVARIANTCOMBINEOUT + '{sample}.vcf.lsfout.log',
+        lsferrfile = GATKVARIANTCOMBINEOUT + '{sample}.vcf.lsferr.log',
         scratch = config['tools']['GATK']['combineVariants']['scratch'],
         mem = config['tools']['GATK']['combineVariants']['mem'],
-        time = config['tools']['GATK']['combineVariants']['time']
+        time = config['tools']['GATK']['combineVariants']['time'],
+        specificParams = config['tools']['GATK']['combineVariants']['specificParams'],
+        inputString = getInputString_forVariantCombine
     threads:
-        config['tools']['GATK']['combineVariants']['threads']
+        int(config['tools']['GATK']['combineVariants']['threads'])
     benchmark:
-        '{sample}.annotated.vcf.benchmark'
+        GATKVARIANTCOMBINEOUT + '{sample}.vcf.benchmark'
     shell:
-        '{config[tools][GATK][call]} -T -db {input.dbNSFPDB} {input.vcf} > {output.vcf}'
+        '{config[tools][GATK][call]} -T CombineVariants -R {input.reference} {params.inputString} -o {output.vcf} {params.specificParams}'
+        

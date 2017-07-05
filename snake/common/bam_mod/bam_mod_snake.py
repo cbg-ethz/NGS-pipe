@@ -1,7 +1,7 @@
 import ntpath
 
 # This rule creates an indes of a BAM file
-rule createIndex:
+rule samtools_create_index:
     input:
         bam = '{sample}.bam',
     output:
@@ -28,9 +28,9 @@ rule linkIndex:
     params:
         lsfoutfile = '{sample}.bam.bai.lsfout.log',
         lsferrfile = '{sample}.bam.bai.lsferr.log',
-        scratch = '1000', # config['tools']['samtools']['index']['scratch'],
-        mem = '1000', # config['tools']['samtools']['index']['mem'],
-        time = '1' #config['tools']['samtools']['index']['time']
+        scratch = '1000', 
+        mem = '1000', 
+        time = '1' 
     threads:
         1
     benchmark:
@@ -43,7 +43,7 @@ if not 'FIXMATEANDSORTIN' in globals():
     FIXMATEANDSORTIN = BWAOUT
 if not 'FIXMATEANDSORTOUT' in globals():
     FIXMATEANDSORTOUT = OUTDIR + 'fix_sorted/'
-rule fixMatePairAndSort:
+rule picards_fix_mate_pair_and_sort:
     input:
         bam=FIXMATEANDSORTIN + '{sample}.bam'
     output:
@@ -108,7 +108,7 @@ if not 'MERGEBAMSIN' in globals():
     MERGEBAMSIN = FIXMATEANDSORTOUT
 if not 'MERGEBAMSOUT' in globals():
     MERGEBAMSOUT = OUTDIR + 'merged/'
-rule mergeBams:
+rule picard_merge_bams:
     input:
         bams = getBamsToMerge
     output:
@@ -141,7 +141,7 @@ if not 'NOSECONDARYALNIN' in globals():
     NOSECONDARYALNIN = MERGEBAMSOUT
 if not 'NOSECONDARYALNOUT' in globals():
     NOSECONDARYALNOUT = OUTDIR + 'noSecondaryAln/'
-rule removeSecondaryAlignments:
+rule samtools_remove_secondary_alignments:
     input:
         bam = NOSECONDARYALNIN+ '{sample}.bam',
     output:
@@ -164,7 +164,7 @@ if not 'MARKPCRDUBLICATESIN' in globals():
     MARKPCRDUBLICATESIN = NOSECONDARYALNOUT
 if not 'MARKPCRDUBLICATESOUT' in globals():
     MARKPCRDUBLICATESOUT = OUTDIR + 'markedDuplicates/'
-rule markPCRDuplicates:
+rule picards_mark_PCR_duplicates:
     input:
         bam=MARKPCRDUBLICATESIN + '{sample}.bam',
     output:
@@ -197,7 +197,7 @@ if not 'REMOVEPCRDUBLICATESIN' in globals():
     REMOVEPCRDUBLICATESIN = MARKPCRDUBLICATESOUT
 if not 'REMOVEPCRDUBLICATESOUT' in globals():
     REMOVEPCRDUBLICATESOUT = OUTDIR + 'removedPcrDuplicates/'
-rule removePCRDuplicates:
+rule samtools_remove_PCR_duplicates:
     input:
         bam=REMOVEPCRDUBLICATESIN + '{sample}.bam',
     output:
@@ -221,7 +221,7 @@ if not 'REASSIGNONEMAPPINGQUALIN' in globals():
     REASSIGNONEMAPPINGQUALIN = OUTDIR + '.reassing_one_mapping_quality_in'
 if not 'REASSIGNONEMAPPINGQUALOUT' in globals():
     REASSIGNONEMAPPINGQUALOUT = OUTDIR + '.reassing_one_mapping_quality_out'
-rule reassignOneMappingQualityFilter:
+rule gatk_reassign_one_mapping_quality_filter:
     input:
         bam=REASSIGNONEMAPPINGQUALIN + '{sample}.bam',
         bamIdx=REASSIGNONEMAPPINGQUALIN + '{sample}.bam.index',
@@ -327,7 +327,7 @@ if not 'REALIGNINDELSIN' in globals():
     REALIGNINDELSIN = REMOVEPCRDUBLICATESOUT
 if not 'REALIGNINDELSOUT' in globals():
     REALIGNINDELSOUT = OUTDIR + 'realignedIndels/'
-rule realignTargetCreation:
+rule gatk_realign_target_creation:
     input:
         bam = getBamsToRealingFromExperimentId,
         bai = getBaisToRealingFromExperimentId,
@@ -380,7 +380,7 @@ def prependDataBasisForTargetRealigner():
 # Rule to perform the indel realignment
 # This is a GATK tool
 #ruleorder: realignIndels > createIndex
-rule realignIndels:
+rule gatk_realign_indels:
     input:
         bam = getBamsToRealingFromExperimentId,
         bai = getBaisToRealingFromExperimentId,
@@ -482,7 +482,7 @@ if not 'BASERECALIBRATIONIN' in globals():
     BASERECALIBRATIONIN = REALIGNINDELSOUT
 if not 'BASERECALIBRATIONOUT' in globals():
     BASERECALIBRATIONOUT = OUTDIR + 'recalibratedBases/'
-rule firstPassCreateRecalibrationTable:
+rule gatk_first_pass_create_recalibration_table:
     input:
         bam = BASERECALIBRATIONIN + '{sample}.bam',
         bai = BASERECALIBRATIONIN + '{sample}.bai',
@@ -551,7 +551,7 @@ rule secondPassCreateRecalibrationTable:
 
 # Rule to realing the reads around indels
 # This is a GATK tool
-rule baseRecalibration:
+rule gatk_base_recalibration:
     input:
         bam = BASERECALIBRATIONIN + '{sample}.bam',
         bai = BASERECALIBRATIONIN + '{sample}.bai',

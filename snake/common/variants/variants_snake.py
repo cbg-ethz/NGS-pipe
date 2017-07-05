@@ -555,35 +555,13 @@ if not 'VARDICTIN' in globals():
     VARDICTIN = BASERECALIBRATIONOUT
 if not 'VARDICTOUT' in globals():
     VARDICTOUT = OUTDIR + 'variants/varDict/raw/'
-rule createBedForVarDict:
-    input:
-        regions = config['resources'][ORGANISM]['regions']
-    output:
-        bed = VARDICTOUT + 'splitted_regions.bed'
-    params:
-        lsfoutfile = VARDICTOUT + 'splitted_regions.bed.lsfout.log',
-        lsferrfile = VARDICTOUT + 'splitted_regions.bed.lsferr.log',
-        scratch = config['tools']['varDictSplitBed']['scratch'],
-        mem = config['tools']['varDictSplitBed']['mem'],
-        time = config['tools']['varDictSplitBed']['time']
-    benchmark:
-        VARDICTOUT + 'splitted_regions.bed.benchmark'
-    threads:
-        config['tools']['varDictSplitBed']['threads']
-    log:
-        VARDICTOUT + 'splitted_regions.bed.log'
-    shell:
-        ('{config[tools][varDictSplitBed][call]} ' +
-        '-infile {input.regions} ' +
-        '-outfile {output.bed}') 
-
 rule varDict:
     input:
         tumor = VARDICTIN + '{tumor}.bam',
         tumorIdx = VARDICTIN + '{tumor}.bai',
         normal = VARDICTIN + '{normal}.bam',
         normalIdx = VARDICTIN + '{normal}.bai',
-        regions = VARDICTOUT + 'splitted_regions.bed',
+        regions = config['resources'][ORGANISM]['regions'],
         ref = config['resources'][ORGANISM]['reference']
     output:
         vcf = VARDICTOUT + '{tumor}_vs_{normal}.vcf'
@@ -608,7 +586,6 @@ rule varDict:
         '-f {params.minAllelFreq} ' +
         '-h ' + #Print a header row decribing columns
         '-b "{input.tumor}|{input.normal}" ' +
-        '-z 1 ' + # this is so error prone '-z 1' means the BED file is zero bases
         '-Q 1 -c 1 -S 2 -E 3 -g 4 {input.regions} | ' +
         'awk \'NR!=1\' | ' +
         '{config[tools][varDict][varDictTestSomatic]} | ' +

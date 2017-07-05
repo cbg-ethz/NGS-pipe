@@ -1,6 +1,6 @@
 {
     "trimmomatic":{
-        "call":"java -Xmx12G -jar tools/Trimmomatic-0.36/trimmomatic-0.36.jar",
+        "call":"trimmomatic -Xmx12G",
         "scratch":"10000",
         "mem":"10000",
         "time":"235",
@@ -10,7 +10,7 @@
             "phred":"-phred33",
             "mode":"PE",
             "minQual":"2",
-            "rnaadapterfile":"tools/Trimmomatic-0.36/adapters/TruSeq2-PE.fa",
+            "rnaadapterfile":"resources/TruSeq2-PE.fa",
             "seedmismatches":"1",
             "palindrom":"30",
             "min_adapt_len":"1",
@@ -24,7 +24,7 @@
             "phred":"-phred33",
             "mode":"SE",
             "minQual":"2",
-            "rnaadapterfile":"tools/Trimmomatic-0.36/adapters/TruSeq2-SE.fa",
+            "rnaadapterfile":"resources/TruSeq2-SE.fa",
             "seedmismatches":"1",
             "palindrom":"30",
             "minlen":"50",
@@ -32,7 +32,7 @@
         }
     },
     "samtools":{
-        "call":"tools/samtools-1.3.1/samtools",
+        "call":"samtools ",
         "flagstat":{
             "scratch":"2000",
             "mem": "4000",
@@ -41,14 +41,14 @@
         }
     },
     "fastqc": {
-        "call" : "tools/FastQC/fastqc",
+        "call" : "fastqc ",
         "scratch": "10000",
         "mem": "10000",
         "time": "60",
         "threads": "1"
     },
     "star":{
-      "call" : "tools/STAR-2.5.3a/bin/Linux_x86_64_static/STAR",
+      "call" : "STAR ",
       "readFilesCommand": "zcat",
       "outFilterMultimapNmax": "20",
       "outStd": "SAM",
@@ -60,7 +60,7 @@
       "threads": "4"
     },
     "featureCounts":{
-      "call": "tools/subread-1.5.2-Linux-x86_64/bin/featureCounts",
+      "call": "featureCounts",
       "scratch": "1000",
       "mem": "1000",
       "time": "30",

@@ -19,14 +19,11 @@ rule all:
         'resources/ucsc.hg19.fasta',
         'resources/ucsc.hg19.fasta.fai',
         'resources/ucsc.hg19.dict',
-        'tools/STAR-2.5.3a/bin/Linux_x86_64_static/STAR',
         'resources/starIndexBuild.done',
-        'tools/Trimmomatic-0.36/trimmomatic-0.36.jar',
-        'tools/FastQC/fastqc',
-        'tools/samtools-1.3.1/bin/samtools',
         'resources/Homo_sapiens.GRCh37.87.gatk.gtf',
-        'tools/subread-1.5.2-Linux-x86_64/bin/featureCounts'
-rule download:
+        'resources/TruSeq2-PE.fa',
+        'resources/TruSeq2-SE.fa'
+rule downloadFastq:
     output: 
         fq1 = OUTDIR + 'fastq/{id}/PAIREDEND/{id}_1_R{mate}.fastq.gz'
     params:
@@ -41,6 +38,21 @@ rule download:
 
 
 rule downloadReference:
+    output:
+        pe = 'resources/TruSeq2-PE.fa',
+        se = 'resources/TruSeq2-SE.fa',
+    params:
+        lsfoutfile = 'resources/adapters.lsfout.log',
+        lsferrfile = 'resources/adapters.lsferr.log',
+        scratch = '2000',
+        mem = '2000',
+        time = '20',
+    shell:
+         ('mkdir -p resources; cd resources; ' +
+         'wget https://github.com/timflutre/trimmomatic/blob/master/adapters/TruSeq2-PE.fa; ' +
+         'wget https://github.com/timflutre/trimmomatic/blob/master/adapters/TruSeq2-SE.fa;')
+
+rule downloadAdapters:
     output:
         fa = 'resources/ucsc.hg19.fasta',
         fai = 'resources/ucsc.hg19.fasta.fai',
@@ -57,40 +69,9 @@ rule downloadReference:
          'wget ftp://gsapubftp-anonymous@ftp.broadinstitute.org/bundle/hg19/ucsc.hg19.fasta.fai.gz; gunzip ucsc.hg19.fasta.fai.gz; ' +
          'wget ftp://gsapubftp-anonymous@ftp.broadinstitute.org/bundle/hg19/ucsc.hg19.dict.gz; gunzip ucsc.hg19.dict.gz;')
 
-rule createStar:
-    output:
-        aligner = 'tools/STAR-2.5.3a/bin/Linux_x86_64_static/STAR'
-    params:
-        place =  'tools/',
-        lsfoutfile = 'tools/STAR-2.5.3a.lsfout.log',
-        lsferrfile = 'tools/STAR-2.5.3a.lsferr.log',
-        scratch = '10000',
-        mem = '10000',
-        time = '240',
-    shell:
-        ('mkdir -p {params.place}; cd {params.place}; ' +
-        'wget https://github.com/alexdobin/STAR/archive/2.5.3a.zip; ' +
-        'unzip 2.5.3a.zip;')
-
-rule createTrimmomatic:
-    output:
-        clipper = 'tools/Trimmomatic-0.36/trimmomatic-0.36.jar'
-    params:
-        place =  'tools/',
-        lsfoutfile = 'tools/Trimmomatic-0.36/trimmomatic.lsfout.log',
-        lsferrfile = 'tools/Trimmomatic-0.36/trimmomatic.lsferr.log',
-        scratch = '10000',
-        mem = '10000',
-        time = '240',
-    shell:
-        ('cd {params.place}; ' +
-        'wget http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.36.zip; ' +
-        'unzip Trimmomatic-0.36.zip; ')
-
 rule createStarIndex:
     input:
-        ref = 'resources/ucsc.hg19.fasta',
-        aligner = 'tools/STAR-2.5.3a/bin/Linux_x86_64_static/STAR'
+        ref = 'resources/ucsc.hg19.fasta'
     output:
         out = touch('resources/starIndexBuild.done')
     params:
@@ -99,42 +80,12 @@ rule createStarIndex:
         scratch = '5000',
         mem = '5000',
         time = '240'
+    conda:
+        'conda/star.yaml'
     threads:
         12
     shell:
-        '{input.aligner} --runMode genomeGenerate --genomeDir resources --genomeFastaFiles {input.ref} --runThreadN {threads}'        
-
-rule createFastQC:
-    output:
-        fastqc = 'tools/FastQC/fastqc'
-    params:
-        place =  'tools/',
-        lsfoutfile = 'tools/FastQC/fastqc.lsfout.log',
-        lsferrfile = 'tools/FastQC/fastqc.lsferr.log',
-        scratch = '10000',
-        mem = '10000',
-        time = '20',
-    shell:
-        ('cd {params.place}; ' +
-        'wget --no-check-certificate http://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip; ' +
-        'unzip fastqc_v0.11.5.zip; chmod 755 FastQC/fastqc ')
-rule createSamtools:
-    output:
-        sam = 'tools/samtools-1.3.1/bin/samtools'
-    params:
-        place =  'tools/',
-        lsfoutfile = 'tools/samtools-1.3.1/bin/samtools.lsfout.log',
-        lsferrfile = 'tools/samtools-1.3.1/bin/samtools.lsferr.log',
-        scratch = '10000',
-        mem = '10000',
-        time = '240',
-    shell:
-        ('cd {params.place}; ' +
-        'wget https://github.com/samtools/samtools/releases/download/1.3.1/samtools-1.3.1.tar.bz2; ' +
-        'tar -xvf samtools-1.3.1.tar.bz2; ' +
-        'cd samtools-1.3.1; ' +
-        'make; ' +
-        'make prefix=. install')
+        'STAR --runMode genomeGenerate --genomeDir resources --genomeFastaFiles {input.ref} --runThreadN {threads}'        
 
 rule downloadGTF:
     output:
@@ -149,18 +100,3 @@ rule downloadGTF:
         ('mkdir -p resources; cd resources; ' +
         'wget ftp://ftp.ensembl.org/pub/grch37/release-87/gtf/homo_sapiens/Homo_sapiens.GRCh37.87.gtf.gz; gunzip Homo_sapiens.GRCh37.87.gtf.gz; '+
         'awk \'{{if(($0 ! /^#/) && ($0 ! /^MT/)) print \"chr\"$0; else print $0}}\' Homo_sapiens.GRCh37.87.gtf > Homo_sapiens.GRCh37.87.gatk.gtf')
-
-rule createFeatureCounts:
-    output:
-        fc = 'tools/subread-1.5.2-Linux-x86_64/bin/featureCounts'
-    params:
-        place =  'tools/',
-        lsfoutfile = 'tools/subread-1.5.2-Linux-x86_64/bin/featureCount.lsfout.log',
-        lsferrfile = 'tools/subread-1.5.2-Linux-x86_64/bin/featureCount.lsferr.log',
-        scratch = '2000',
-        mem = '2000',
-        time = '20',
-    shell:
-        ('cd {params.place}; ' +
-        'wget https://sourceforge.net/projects/subread/files/subread-1.5.2/subread-1.5.2-Linux-x86_64.tar.gz; ' +
-        'tar zxvf subread-1.5.2-Linux-x86_64.tar.gz;') 
