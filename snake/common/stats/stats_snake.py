@@ -11,7 +11,7 @@ rule createBedForQualimap:
 rule qualimap_PDF:
     input:
         bam = '{sample}.bam',
-        regions = config['resources'][ORGANISM]['regions'] + '_qual.bed'
+        regions = config['tools']['qualimap']['regions']
     output:
         dir = '{sample}.bam_stats',
         file = '{sample}.bam_stats/report.pdf'
@@ -103,7 +103,13 @@ rule analyzeCovariates:
     threads:
         config['tools']['GATK']['analyzeCovariates']['threads']
     shell:
-        '{config[tools][GATK][call]} -T AnalyzeCovariates -R {input.reference} -before {input.tabBefore} -after {input.tabAfter} -plots {output.pdf}'
+        '{config[tools][GATK][analyzeCovariates][expRscript]}; '
+        '{config[tools][GATK][call]} ' +
+        '-T AnalyzeCovariates ' +
+        '-R {input.reference} ' +
+        '-before {input.tabBefore} ' +
+        '-after {input.tabAfter} ' +
+        '-plots {output.pdf}'
 
 #def getAllFastqFiles(wildcards):
 #    unpaired = expand(ROOTFOLDER + '{files}.fastq.gz', files=PAIREDFASTQFILES)

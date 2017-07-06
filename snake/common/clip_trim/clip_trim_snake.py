@@ -1,22 +1,22 @@
 # This rule clips bases with too low quality from the reads
 # and removes adapter contamination in the reads
-if not 'CLIPTRIMIN' in globals():
-    CLIPTRIMIN = FASTQDIR
-if not 'CLIPTRIMOUT' in globals():
-    CLIPTRIMOUT = OUTDIR + 'cliptrim/'
+if not 'TRIMMOMATICIN' in globals():
+    TRIMMOMATICIN = FASTQDIR
+if not 'TRIMMOMATICOUT' in globals():
+    TRIMMOMATICOUT = OUTDIR + 'cliptrim/'
 rule trimmomatic_paired:
     input:
-        forward = CLIPTRIMIN + '{sample}/PAIREDEND/{fastq}_R1.fastq.gz',
-        reverse = CLIPTRIMIN + '{sample}/PAIREDEND/{fastq}_R2.fastq.gz',
+        forward = TRIMMOMATICIN + '{sample}/PAIREDEND/{fastq}_R1.fastq.gz',
+        reverse = TRIMMOMATICIN + '{sample}/PAIREDEND/{fastq}_R2.fastq.gz',
         adapter = config['resources']['general']['sequencingAdapter']
     output:
-        forwardP = temp(CLIPTRIMOUT + '{sample}/PAIREDEND/{fastq}_R1.fastq.gz'),
-        forwardUP = temp(CLIPTRIMOUT + '{sample}/PAIREDEND/ORPHAN/{fastq}_R1.fastq.gz'),
-        reverseP = temp(CLIPTRIMOUT + '{sample}/PAIREDEND/{fastq}_R2.fastq.gz'),
-        reverseUP = temp(CLIPTRIMOUT + '{sample}/PAIREDEND/ORPHAN/{fastq}_R2.fastq.gz'),
-        trimlog = temp(CLIPTRIMOUT + '{sample}/PAIREDEND/{fastq}_clipTrim.log.gz')
+        forwardP = temp(TRIMMOMATICOUT + '{sample}/PAIREDEND/{fastq}_R1.fastq.gz'),
+        forwardUP = temp(TRIMMOMATICOUT + '{sample}/PAIREDEND/ORPHAN/{fastq}_R1.fastq.gz'),
+        reverseP = temp(TRIMMOMATICOUT + '{sample}/PAIREDEND/{fastq}_R2.fastq.gz'),
+        reverseUP = temp(TRIMMOMATICOUT + '{sample}/PAIREDEND/ORPHAN/{fastq}_R2.fastq.gz'),
+        trimlog = temp(TRIMMOMATICOUT + '{sample}/PAIREDEND/{fastq}_clipTrim.log.gz')
     params:
-        trimlog = temp(CLIPTRIMOUT + '{sample}/PAIREDEND/{fastq}_clipTrim.log'),
+        trimlog = temp(TRIMMOMATICOUT + '{sample}/PAIREDEND/{fastq}_clipTrim.log'),
         slidingwindow = config['tools']['trimmomatic']['paired']['slidingwindow'],
         phred = config['tools']['trimmomatic']['paired']['phred'],
         mode = config['tools']['trimmomatic']['paired']['mode'],
@@ -27,17 +27,17 @@ rule trimmomatic_paired:
         minlen = config['tools']['trimmomatic']['paired']['minlen'],
         min_adapt_len = config['tools']['trimmomatic']['paired']['min_adapt_len'],
         keep_both = config['tools']['trimmomatic']['paired']['keep_both'],
-        lsfoutfile = CLIPTRIMOUT + '/{sample}/PAIREDEND/{fastq}.fastq.lsfout.log',
-        lsferrfile = CLIPTRIMOUT + '/{sample}/PAIREDEND/{fastq}.fastq.lsferr.log',
+        lsfoutfile = TRIMMOMATICOUT + '/{sample}/PAIREDEND/{fastq}.fastq.lsfout.log',
+        lsferrfile = TRIMMOMATICOUT + '/{sample}/PAIREDEND/{fastq}.fastq.lsferr.log',
         scratch = config['tools']['trimmomatic']['scratch'],
         mem = config['tools']['trimmomatic']['mem'],
         time = config['tools']['trimmomatic']['time']
     benchmark:
-        CLIPTRIMOUT + '/{sample}/PAIREDEND/{fastq}.fastq.gz.benchmark'
+        TRIMMOMATICOUT + '/{sample}/PAIREDEND/{fastq}.fastq.gz.benchmark'
     threads:
         config['tools']['trimmomatic']['paired']['threads']
     log:
-        stdoutlog = CLIPTRIMOUT + '/{sample}/PAIREDEND/{fastq}.fastq.gz.stdout.log'
+        stdoutlog = TRIMMOMATICOUT + '/{sample}/PAIREDEND/{fastq}.fastq.gz.stdout.log'
     shell:
         ('{config[tools][trimmomatic][call]} ' +
         '{params.mode} ' +
@@ -60,10 +60,10 @@ rule trimmomatic_paired:
 
 rule trimmomatic_single:
     input:
-        fastq = FASTQFOLDER + '{sample}/SINGLEEND/{fastq}.fastq.gz',
+        fastq = TRIMMOMATICIN + '{sample}/SINGLEEND/{fastq}.fastq.gz',
         adapter = config['trimmomatic']['single']['rnaadapterfile']
     output:
-        temp(CLIPTRIMOUT + '{sample}/SINGLEEND/{fastq}.fastq.gz')
+        temp(TRIMMOMATICOUT + '{sample}/SINGLEEND/{fastq}.fastq.gz')
     params:
         slidingwindow = config['trimmomatic']['single']['slidingwindow'],
         phred = config['trimmomatic']['single']['phred'],
@@ -73,18 +73,18 @@ rule trimmomatic_single:
         palindrom = config['trimmomatic']['single']['palindrom'],
         score = config['trimmomatic']['single']['score'],
         minlen = config['trimmomatic']['single']['minlen'],
-        lsfoutfile = CLIPTRIMOUT + '{sample}/SINGLEEND/{fastq}_clipTrim.lsfout.log',
-        lsferrfile = CLIPTRIMOUT + '{sample}/SINGLEEND/{fastq}_clipTrim.lsferr.log',
+        lsfoutfile = TRIMMOMATICOUT + '{sample}/SINGLEEND/{fastq}_clipTrim.lsfout.log',
+        lsferrfile = TRIMMOMATICOUT + '{sample}/SINGLEEND/{fastq}_clipTrim.lsferr.log',
         scratch = config['trimmomatic']['scratch'],
         mem = config['trimmomatic']['mem'],
         time = config['trimmomatic']['time']
     benchmark:
-        CLIPTRIMOUT + '{sample}/SINGLEEND/{fastq}.benchmark'
+        TRIMMOMATICOUT + '{sample}/SINGLEEND/{fastq}.benchmark'
     threads:
-        int(config['trimmomatic']['single']['threads'])
+        config['trimmomatic']['single']['threads']
     log:
-        trimlog = CLIPTRIMOUT + '{sample}/SINGLEEND/{fastq}_clipTrim.log',
-        stdoutlog = CLIPTRIMOUT + '{sample}/SINGLEEND/{fastq}_clipTrim.stdout.log'
+        trimlog = TRIMMOMATICOUT + '{sample}/SINGLEEND/{fastq}_clipTrim.log',
+        stdoutlog = TRIMMOMATICOUT + '{sample}/SINGLEEND/{fastq}_clipTrim.stdout.log'
     shell:
         ('{config[trimmomatic][call]} ' + 
         '{params.mode} ' + 

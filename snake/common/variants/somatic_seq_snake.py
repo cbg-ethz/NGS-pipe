@@ -51,8 +51,10 @@ rule symbolicLinkVarScan:
         vcf = VARSCANSOMATICOUT + '{tumor}_vs_{normal}.snp.vcf'
     output:
         vcf = VARSCANSOMATICOUT + '{tumor}_vs_{normal}.vcf'
+    params:
+        dirName = VARSCANSOMATICOUT
     shell:
-        'ln -s {input.vcf} {output.vcf}'
+        'cd {params.dirName}; ln -s {wildcards.tumor}_vs_{wildcards.normal}.snp.vcf {wildcards.tumor}_vs_{wildcards.normal}.vcf'
 
 ruleorder: symbolicLinkVarDict > modifyVarDict > modifyVJSD
 rule modifyVarDict:
@@ -113,8 +115,10 @@ rule symbolicLinkVarDict:
         vcf = SOMATICSEQOUT + '{tumor}_vs_{normal}_prep/snp.{tumor}_vs_{normal}.varDict_modified.vcf',
     output:
         vcf = SOMATICSEQOUT + '{tumor}_vs_{normal}_prep/{tumor}_vs_{normal}.varDict_modified.vcf',
+    params:
+        dirName = SOMATICSEQOUT + '{tumor}_vs_{normal}_prep'
     shell:
-        'ln -s {input.vcf} {output.vcf}'
+        'cd {params.dirName}; ln -s snp.{wildcards.tumor}_vs_{wildcards.normal}.varDict_modified.vcf {wildcards.tumor}_vs_{wildcards.normal}.varDict_modified.vcf'
 
 rule sortVcfs:
     input:

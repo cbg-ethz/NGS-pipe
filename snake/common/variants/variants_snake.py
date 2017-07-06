@@ -581,13 +581,12 @@ rule varDict:
     log:
         VARDICTOUT + '{tumor}_vs_{normal}.vcf.log'
     shell:
-        ('{config[tools][varDict][call]} ' + 
+        ('{config[tools][varDict][expRscript]} ' + 
+        '{config[tools][varDict][call]} ' + 
         '-G {input.ref} ' +
         '-f {params.minAllelFreq} ' +
-        '-h ' + #Print a header row decribing columns
         '-b "{input.tumor}|{input.normal}" ' +
         '-Q 1 -c 1 -S 2 -E 3 -g 4 {input.regions} | ' +
-        'awk \'NR!=1\' | ' +
         '{config[tools][varDict][varDictTestSomatic]} | ' +
         '{config[tools][varDict][varDict2VcfPaired]} ' +
         '-N "TUMOR|NORMAL" ' +

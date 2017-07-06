@@ -36,7 +36,7 @@ rule linkIndex:
     benchmark:
         '{sample}.bam.bai.benchmark'
     shell:
-        'ln -s {input.bai} {output.bai}'
+        'dirName=$(dirname "{input.bai}"); inBai=$(basename "{input.bai}"); outBai=$(basename "{output.bai}"); cd "$dirName"; ln -s "$inBai" "$outBai"'
 
 # This rule sorts a BAM file and fixes mate pair information if necessary
 if not 'FIXMATEANDSORTIN' in globals():
@@ -452,9 +452,10 @@ rule getRealignedBam:
     output:
         bam = REALIGNINDELSOUT + '{sample}.bam'
     params:
+        dirName = REALIGNINDELSOUT,
         originalBam = REALIGNINDELSOUT + 'ORIGINAL_{sample}.bam'
     shell:
-        'ln -s {params.originalBam} {output.bam}'
+        'cd {params.dirName}; ln -s ORIGINAL_{wildcards.sample}.bam {wildcards.sample}.bam'
 
 def getDataBasisForBaseRecalibration():
     out = []

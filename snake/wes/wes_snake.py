@@ -17,12 +17,12 @@ if not 'TMPDIR' in globals():
 
 # This is the default order in which the programs are executed
 # If the user specified a different order the user specified version is chosen.
-if not 'CLIPTRIMIN' in globals():
-    CLIPTRIMIN = FASTQDIR
-if not 'CLIPTRIMOUT' in globals():
-    CLIPTRIMOUT = OUTDIR + 'cliptrim/'
+if not 'TRIMMOMATICIN' in globals():
+    TRIMMOMATICIN = FASTQDIR
+if not 'TRIMMOMATICOUT' in globals():
+    TRIMMOMATICOUT = OUTDIR + 'cliptrim/'
 if not 'BWAIN' in globals():
-    BWAIN = CLIPTRIMOUT
+    BWAIN = TRIMMOMATICOUT
 if not 'BWAOUT' in globals():
     BWAOUT = OUTDIR + 'bwa/'
 if not 'FIXMATEANDSORTIN' in globals():
@@ -131,9 +131,9 @@ if not 'STRELKAFILTEROUT' in globals():
 # Definition of some constantly used lists
 
 SAMPLENAMES=getSampleNames()
-SINGLEFASTQFILES=getSingleFastqFiles()
-PAIREDFASTQFILES=getPairedFastqFiles()
-PAIREDFASTQFILESWITHOUTR=getPairedFastqFilesWithoutR()
+SINGLEFASTQFILES=getSingleFastqFiles(SAMPLENAMES)
+PAIREDFASTQFILES=getPairedFastqFiles(SAMPLENAMES)
+PAIREDFASTQFILESWITHOUTR=getPairedFastqFilesWithoutR(SAMPLENAMES)
 
 # Include the rules
 include: "../common/clip_trim/clip_trim_snake.py"
@@ -149,11 +149,11 @@ include: "../common/variants/variant_mod_snake.py"
 rule wes:
     input:
         [file.replace('.fastq.gz', '_fastqc.html') for file in list(chain.from_iterable(glob.glob(FASTQDIR + SAMPLE + '/PAIREDEND/*.fastq.gz') for SAMPLE in SAMPLENAMES))],
-        [file.replace('.fastq.gz', '_fastqc.html').replace(FASTQDIR, CLIPTRIMOUT) for file in list(chain.from_iterable(glob.glob(FASTQDIR + SAMPLE + '/PAIREDEND/*.fastq.gz') for SAMPLE in SAMPLENAMES))],
-        [file.replace('.fastq.gz', '_fastqc.html').replace(FASTQDIR, CLIPTRIMOUT).replace('PAIREDEND', 'PAIREDEND/ORPHAN') for file in list(chain.from_iterable(glob.glob(FASTQDIR + SAMPLE + '/PAIREDEND/*.fastq.gz') for SAMPLE in SAMPLENAMES))],
+        [file.replace('.fastq.gz', '_fastqc.html').replace(FASTQDIR, TRIMMOMATICOUT) for file in list(chain.from_iterable(glob.glob(FASTQDIR + SAMPLE + '/PAIREDEND/*.fastq.gz') for SAMPLE in SAMPLENAMES))],
+        [file.replace('.fastq.gz', '_fastqc.html').replace(FASTQDIR, TRIMMOMATICOUT).replace('PAIREDEND', 'PAIREDEND/ORPHAN') for file in list(chain.from_iterable(glob.glob(FASTQDIR + SAMPLE + '/PAIREDEND/*.fastq.gz') for SAMPLE in SAMPLENAMES))],
         [file.replace('.fastq.gz', '.count') for file in list(chain.from_iterable(glob.glob(FASTQDIR + SAMPLE + '/PAIREDEND/*.fastq.gz') for SAMPLE in SAMPLENAMES))],
-        [file.replace('.fastq.gz', '.count').replace(FASTQDIR, CLIPTRIMOUT) for file in list(chain.from_iterable(glob.glob(FASTQDIR + SAMPLE + '/PAIREDEND/*.fastq.gz') for SAMPLE in SAMPLENAMES))],
-        [file.replace('.fastq.gz', '.count').replace(FASTQDIR, CLIPTRIMOUT).replace('PAIREDEND', 'PAIREDEND/ORPHAN') for file in list(chain.from_iterable(glob.glob(FASTQDIR + SAMPLE + '/PAIREDEND/*.fastq.gz') for SAMPLE in SAMPLENAMES))],
+        [file.replace('.fastq.gz', '.count').replace(FASTQDIR, TRIMMOMATICOUT) for file in list(chain.from_iterable(glob.glob(FASTQDIR + SAMPLE + '/PAIREDEND/*.fastq.gz') for SAMPLE in SAMPLENAMES))],
+        [file.replace('.fastq.gz', '.count').replace(FASTQDIR, TRIMMOMATICOUT).replace('PAIREDEND', 'PAIREDEND/ORPHAN') for file in list(chain.from_iterable(glob.glob(FASTQDIR + SAMPLE + '/PAIREDEND/*.fastq.gz') for SAMPLE in SAMPLENAMES))],
         expand(MERGEBAMSOUT + '{sample}.bam', sample = SAMPLENAMES),
         expand(MERGEBAMSOUT + '{sample}.bam.flagstat', sample = SAMPLENAMES),
         expand(MERGEBAMSOUT + '{sample}.bam_stats/report.pdf', sample = SAMPLENAMES),
@@ -179,7 +179,8 @@ rule wes:
         #expand(RANKCOMBINEOUT + '{tumorNormalMatching}.txt', tumorNormalMatching = getNormalTumorFiles()),
         expand(SOMATICSEQOUT + '{type}.{tumorNormalMatching}.somaticseq.dbSNP.cosmic.snpEff.vcf', type = ['snp', 'indel'], tumorNormalMatching = getNormalTumorFiles()),
         expand(FACETSOUT + '{tumorNormalMatching}.cn', tumorNormalMatching = getNormalTumorFiles()),
-        #expand(VARSCANCNVOUT + '{tumorNormalMatching}.copynumber.called', tumorNormalMatching = getNormalTumorFiles()),
+        expand(VARSCANCNVOUT + '{tumorNormalMatching}.cn', tumorNormalMatching = getNormalTumorFiles()),
+        #expand(VARSCANCNVOUT + '{tumorNormalMatching}.cn.annotated.txt', tumorNormalMatching = getNormalTumorFiles()),
         HAPLOTYPECALLEROUT + 'combined_dist.pdf'
     output:
         OUTDIR + 'complete.txt'
