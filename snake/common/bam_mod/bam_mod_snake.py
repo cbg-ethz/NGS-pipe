@@ -174,7 +174,8 @@ rule picards_mark_PCR_duplicates:
         lsferrfile = MARKPCRDUBLICATESOUT + '{sample}.bam.lsferr.log',
         scratch = config['tools']['picard']['markduplicates']['scratch'],
         mem = config['tools']['picard']['markduplicates']['mem'],
-        time = config['tools']['picard']['markduplicates']['time']
+        time = config['tools']['picard']['markduplicates']['time'],
+        params = config['tools']['picard']['markduplicates']['params']
     threads:
         config['tools']['picard']['markduplicates']['threads']
     benchmark:
@@ -187,7 +188,7 @@ rule picards_mark_PCR_duplicates:
         'MarkDuplicates ' +
         'INPUT={input.bam} ' +
         'OUTPUT={output.bam}  ' +
-        '{config[tools][picard][markduplicates][params]} ' +
+        '{params.params} ' +
         'TMP_DIR={TMPDIR} ' +
         'METRICS_FILE={log.metrics} ' +
         '2> {log.log}')

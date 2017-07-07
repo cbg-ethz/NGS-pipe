@@ -401,7 +401,7 @@ rule annotateCNVsWithBedtools:
         mem = config['tools']['bedtools']['intersect']['mem'],
         time = config['tools']['bedtools']['intersect']['time']
     threads:
-        int(config['tools']['bedtools']['intersect']['threads'])
+        config['tools']['bedtools']['intersect']['threads']
     benchmark:
         '{sample}.annotated.benchmark'
     shell:

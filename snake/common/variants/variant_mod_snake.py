@@ -346,7 +346,7 @@ rule gatk_variant_combine:
         specificParams = config['tools']['GATK']['combineVariants']['specificParams'],
         inputString = getInputString_forVariantCombine
     threads:
-        int(config['tools']['GATK']['combineVariants']['threads'])
+        config['tools']['GATK']['combineVariants']['threads']
     benchmark:
         GATKVARIANTCOMBINEOUT + '{sample}.vcf.benchmark'
     shell:
