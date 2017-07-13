@@ -177,11 +177,11 @@ rule wes:
         #expand(STRELKAOUT + '{tumorNormalMatching}.vcf', tumorNormalMatching = getNormalTumorFiles()),
         #expand(DEEPSNVOUT + '{tumorNormalMatching}.vcf', tumorNormalMatching = getNormalTumorFiles()),
         #expand(RANKCOMBINEOUT + '{tumorNormalMatching}.txt', tumorNormalMatching = getNormalTumorFiles()),
-        expand(SOMATICSEQOUT + '{type}.{tumorNormalMatching}.somaticseq.dbSNP.cosmic.snpEff.vcf', type = ['snp', 'indel'], tumorNormalMatching = getNormalTumorFiles()),
-        expand(FACETSOUT + '{tumorNormalMatching}.cn', tumorNormalMatching = getNormalTumorFiles()),
-        expand(VARSCANCNVOUT + '{tumorNormalMatching}.cn', tumorNormalMatching = getNormalTumorFiles()),
-        #expand(VARSCANCNVOUT + '{tumorNormalMatching}.cn.annotated.txt', tumorNormalMatching = getNormalTumorFiles()),
-        HAPLOTYPECALLEROUT + 'combined_dist.pdf'
+        #expand(SOMATICSEQOUT + '{type}.{tumorNormalMatching}.somaticseq.dbSNP.cosmic.snpEff.vcf', type = ['snp', 'indel'], tumorNormalMatching = getNormalTumorFiles()),
+        #HAPLOTYPECALLEROUT + 'combined_dist.pdf',
+        #expand(FACETSOUT + '{tumorNormalMatching}.cn', tumorNormalMatching = getNormalTumorFiles()),
+        expand(VARSCANCNVOUT + '{tumorNormalMatching}.cn.txt', tumorNormalMatching = getNormalTumorFiles()),
+        expand(GATKVARIANTCOMBINEOUT + '{tumorNormalMatching}.combined.dbSNP.cosmic.snpEff.vcf', tumorNormalMatching = getNormalTumorFiles())
     output:
         OUTDIR + 'complete.txt'
     params:
