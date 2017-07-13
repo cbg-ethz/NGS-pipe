@@ -194,7 +194,7 @@ paired-end mode and one *.tsv* file for each fastq file in single-end mode. The
 ##### TSV files
 ```
 RUN_NAME_FOLDER # sample
-LANE_NUMBER     # lane the reads of the fastq file 
+LANE_NUMBER     # lane the reads of the fastq file were sequenced on
 SAMPLE_CODE     # the library used for the reads
 SAMPLE_TYPE     # the technique used to generate the reads, e.g. ILLUMINA
 ```
