@@ -19,6 +19,5 @@ NORMALTUMORMATCHING = getNormalTumorFiles()
 
 rule SRA051153:
     input:
-        #'out/complete.txt',
         expand(REMOVEPCRDUBLICATESOUT + '{sample}.bam_stats/report.pdf', sample = SAMPLENAMES),
         expand(VARSCANSOMATICOUT + '{tumorNormalMatching}.snp.vcf', tumorNormalMatching = NORMALTUMORMATCHING)
