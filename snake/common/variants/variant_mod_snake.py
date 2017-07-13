@@ -303,28 +303,28 @@ rule updateNormalTumorName:
         ('tumorName=$(basename {params.tumor}) ; sed \"/^#CHROM/s/TUMOR/$tumorName/\" {input.vcf} > {output.vcf} ; ' +
         'sed -i \"/^#CHROM/s/NORMAL/{params.normal}/\" {output.vcf}')
         
-
-dictCaller = {}  # this dictionary contains for each of the variant callers the location of the vcf desired as input for GATK variant combine
-dictCaller["mutect1"] = MUTECT1FILTEROUT
-dictCaller["varscansomatic"] = VARSCANSOMATICFILTEROUT
-dictCaller["strelka"] = STRELKAFILTEROUT
-
-def getVCFs_forVariantCombine(wildcards):
+def getVcfsForGATKVariantCombine(wildcards):
     out = []
-    for caller in config['tools']['GATK']['combineVariants']['myCallers'].split(","):
-        if caller not in dictCaller.keys():
-            print("Error! Caller name does not match dict entries!")
-            return("ERROR")
-        out.append(dictCaller[caller] + wildcards.sample + '.vcf')
+    if not isinstance(config['tools']['GATK']['combineVariants']['mutect'], Error):
+        out.append(MUTECT1FILTEROUT + wildcards.sample +'.vcf')
+    if not isinstance(config['tools']['GATK']['combineVariants']['mutect2'], Error):
+        out.append(MUTECT2FILTEROUT + wildcards.sample +'.vcf')
+    if not isinstance(config['tools']['GATK']['combineVariants']['vardict'], Error):
+        out.append(VARDICTFILTEROUT + wildcards.sample +'.vcf')
+    if not isinstance(config['tools']['GATK']['combineVariants']['varscansomatic'], Error):
+        out.append(VARSCANSOMATICFILTEROUT + wildcards.sample +'.vcf')
     return out
-    
-def getInputString_forVariantCombine(wildcards):
-    out = ""
-    for caller in config['tools']['GATK']['combineVariants']['myCallers'].split(","):
-        if caller not in dictCaller.keys():
-            print("Error! Caller name does not match dict entries!")
-            return("ERROR")
-        out += '--variant:' + caller + ' ' + dictCaller[caller] + wildcards.sample + '.vcf '
+
+def getVcfStringForGATKVariantCombine(wildcards):
+    out = []
+    if not isinstance(config['tools']['GATK']['combineVariants']['mutect'], Error):
+        out.append('--variant:mutect1 ' + MUTECT1FILTEROUT + wildcards.sample +'.vcf')
+    if not isinstance(config['tools']['GATK']['combineVariants']['mutect2'], Error):
+        out.append('--variant:mutect2 ' + MUTECT2FILTEROUT + wildcards.sample +'.vcf')
+    if not isinstance(config['tools']['GATK']['combineVariants']['vardict'], Error):
+        out.append('--variant:vardict ' + VARDICTFILTEROUT + wildcards.sample +'.vcf')
+    if not isinstance(config['tools']['GATK']['combineVariants']['varscansomatic'], Error):
+        out.append('--variant:varscan ' + VARSCANSOMATICFILTEROUT + wildcards.sample +'.vcf')
     return out
 
         
@@ -333,7 +333,7 @@ if not 'GATKVARIANTCOMBINEOUT' in globals():
     GATKVARIANTCOMBINEOUT = OUTDIR + 'variants/gatk_combined/'
 rule gatk_variant_combine:
     input:
-        vcfs = getVCFs_forVariantCombine,
+        vcfs = getVcfsForGATKVariantCombine,
         reference = config['resources'][ORGANISM]['reference']
     output:
         vcf = GATKVARIANTCOMBINEOUT + '{sample}.combined.vcf'
@@ -344,7 +344,7 @@ rule gatk_variant_combine:
         mem = config['tools']['GATK']['combineVariants']['mem'],
         time = config['tools']['GATK']['combineVariants']['time'],
         specificParams = config['tools']['GATK']['combineVariants']['specificParams'],
-        inputString = getInputString_forVariantCombine
+        inputString = getVcfStringForGATKVariantCombine
     threads:
         config['tools']['GATK']['combineVariants']['threads']
     benchmark:
