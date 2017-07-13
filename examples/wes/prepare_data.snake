@@ -168,8 +168,8 @@ rule downloadAdapters:
     output:
         pe = '../resources/TruSeq2-PE.fa'
     params:
-        lsfoutfile = 'resources/adapters.lsfout.log',
-        lsferrfile = 'resources/adapters.lsferr.log',
+        lsfoutfile = '../resources/adapters.lsfout.log',
+        lsferrfile = '../resources/adapters.lsferr.log',
         scratch = '2000',
         mem = '2000',
         time = '20',
