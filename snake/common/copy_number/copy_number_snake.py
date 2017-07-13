@@ -16,7 +16,8 @@ if not 'BICSEQ2OUT' in globals():
     BICSEQ2OUT = OUTDIR + 'bicseq2/'
 rule bicSeq_samtoolsUnique:
     input:
-        bam = BICSEQ2IN + '{sample}.bam'
+        bam = BICSEQ2IN + '{sample}.bam',
+        contigNamnes =config['resources'][ORGANISM]['contigNames']
     output:
         seq = expand(BICSEQ2OUT + '{{sample}}' + '/{contigNames}.seq', contigNames=getContigNames())
     params:
@@ -222,7 +223,7 @@ if not 'VARSCANCNVIN' in globals():
     VARSCANCNVIN = MPILEUPOUT
 if not 'VARSCANCNVOUT' in globals():
     VARSCANCNVOUT = OUTDIR + 'copy_number/varscan_cnv/'
-rule varscanCopyNumber:
+rule varscan_copy_number:
     input:
         tumor = VARSCANCNVIN + '{tumor}.mpileup',
         normal = VARSCANCNVIN + '{normal}.mpileup'
@@ -246,23 +247,23 @@ rule varscanCopyNumber:
         '{config[tools][varscan][copyNumber][params]}')
 
 # call VarScan copyCaller
-rule varscanCopyCaller:
+rule varscan_copy_caller:
     input:
         rawCN = VARSCANCNVOUT + '{tumor}_vs_{normal}.copynumber'
     output:
-        out = VARSCANCNVOUT + '{tumor}_vs_{normal}.copynumber.called'
+        out = VARSCANCNVOUT + '{tumor}_vs_{normal}.cn'
     params:
-        lsfoutfile = VARSCANCNVOUT + '{tumor}_vs_{normal}.copynumber.called.lsfout.log',
-        lsferrfile = VARSCANCNVOUT + '{tumor}_vs_{normal}.copynumber.called.lsferr.log',
+        lsfoutfile = VARSCANCNVOUT + '{tumor}_vs_{normal}.cn.lsfout.log',
+        lsferrfile = VARSCANCNVOUT + '{tumor}_vs_{normal}.cn.lsferr.log',
         scratch = config['tools']['varscan']['copyCaller']['scratch'],
         mem = config['tools']['varscan']['copyCaller']['mem'],
         time = config['tools']['varscan']['copyCaller']['time'],
     threads:
         config['tools']['varscan']['copyCaller']['threads']
     benchmark:
-        VARSCANCNVOUT + '{tumor}_vs_{normal}.copynumber.called.benchmark'
+        VARSCANCNVOUT + '{tumor}_vs_{normal}.cy.benchmark'
     log:
-        VARSCANCNVOUT + '{tumor}_vs_{normal}.copynumber.called.log'
+        VARSCANCNVOUT + '{tumor}_vs_{normal}.cn.log'
     shell:
         ('{config[tools][varscan][call]} copyCaller ' +
         '{input.rawCN} ' + 
@@ -385,3 +386,27 @@ rule facets:
     shell:
         ('{config[tools][facets][facets][call]} ' + 
         '{input.csv} {output.txt} {output.pdf}')
+
+# This rule annotates the CNV call results (for excavator reformatting is needed first)
+# TODO: may be of general use, if database is part of paramters? Chose a better suited place in that case!
+rule annotateCNVsWithBedtools:
+    input:
+        inRes = '{sample}.txt',
+        inDB = config['resources']['H_sapiens_hg19']['geneAnnotationDB'] 
+    output:
+        out = '{sample}.annotated.txt'
+    params:
+        lsfoutfile = '{sample}.annotated.lsfout.log',
+        lsferrfile = '{sample}.annotated.lsferr.log',
+        scratch = config['tools']['bedtools']['intersect']['scratch'],
+        mem = config['tools']['bedtools']['intersect']['mem'],
+        time = config['tools']['bedtools']['intersect']['time']
+    threads:
+        config['tools']['bedtools']['intersect']['threads']
+    benchmark:
+        '{sample}.annotated.benchmark'
+    shell:
+        '{config[tools][bedtools][intersect][call]} intersect -a {input.inRes} -b {input.inDB} -wa -wb > {output.out}.temp1.txt ; ' +
+        '{config[tools][bedtools][intersect][call]} intersect -a {input.inRes} -b {input.inDB} -v -wa > {output.out}.temp2.txt ; ' +
+        'cat {output.out}.temp1.txt {output.out}.temp2.txt | sort -k1,1 -k2,2n > {output.out}'
+

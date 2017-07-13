@@ -1,7 +1,7 @@
 import ntpath
 
 # This rule creates an indes of a BAM file
-rule createIndex:
+rule samtools_create_index:
     input:
         bam = '{sample}.bam',
     output:
@@ -28,22 +28,22 @@ rule linkIndex:
     params:
         lsfoutfile = '{sample}.bam.bai.lsfout.log',
         lsferrfile = '{sample}.bam.bai.lsferr.log',
-        scratch = '1000', # config['tools']['samtools']['index']['scratch'],
-        mem = '1000', # config['tools']['samtools']['index']['mem'],
-        time = '1' #config['tools']['samtools']['index']['time']
+        scratch = '1000', 
+        mem = '1000', 
+        time = '1' 
     threads:
         1
     benchmark:
         '{sample}.bam.bai.benchmark'
     shell:
-        'ln -s {input.bai} {output.bai}'
+        'dirName=$(dirname "{input.bai}"); inBai=$(basename "{input.bai}"); outBai=$(basename "{output.bai}"); cd "$dirName"; ln -s "$inBai" "$outBai"'
 
 # This rule sorts a BAM file and fixes mate pair information if necessary
 if not 'FIXMATEANDSORTIN' in globals():
     FIXMATEANDSORTIN = BWAOUT
 if not 'FIXMATEANDSORTOUT' in globals():
     FIXMATEANDSORTOUT = OUTDIR + 'fix_sorted/'
-rule fixMatePairAndSort:
+rule picards_fix_mate_pair_and_sort:
     input:
         bam=FIXMATEANDSORTIN + '{sample}.bam'
     output:
@@ -76,7 +76,7 @@ rule fixMatePairAndSort:
 # This functiom creates a list of BAM files created by the read mapper
 def getAlignerBams():
     out = []
-    if CLIPTRIMOUT == FASTQDIR:
+    if config['tools']['picard']['mergeBams']['useOrphans'] != "Y":
         for f in PAIREDFASTQFILESWITHOUTR:
             out.append( f + '.bam')
     else:
@@ -94,6 +94,7 @@ def getBamsToMerge(wildcards):
         if wildcards.sample == bam.split("/")[0]: 
             out.append(MERGEBAMSIN + bam)
     if not out:
+        #print(wildcards)
         return ['ERROR']
     return out
 
@@ -107,11 +108,11 @@ if not 'MERGEBAMSIN' in globals():
     MERGEBAMSIN = FIXMATEANDSORTOUT
 if not 'MERGEBAMSOUT' in globals():
     MERGEBAMSOUT = OUTDIR + 'merged/'
-rule mergeBams:
+rule picard_merge_bams:
     input:
         bams = getBamsToMerge
     output:
-        bam = MERGEBAMSOUT + '{sample}.bam'
+        bam = temp(MERGEBAMSOUT + '{sample}.bam')
     params:
         lsfoutfile = MERGEBAMSOUT + '{sample}.bam.lsfout.log',
         lsferrfile = MERGEBAMSOUT + '{sample}.bam.lsferr.log',
@@ -140,7 +141,7 @@ if not 'NOSECONDARYALNIN' in globals():
     NOSECONDARYALNIN = MERGEBAMSOUT
 if not 'NOSECONDARYALNOUT' in globals():
     NOSECONDARYALNOUT = OUTDIR + 'noSecondaryAln/'
-rule removeSecondaryAlignments:
+rule samtools_remove_secondary_alignments:
     input:
         bam = NOSECONDARYALNIN+ '{sample}.bam',
     output:
@@ -163,7 +164,7 @@ if not 'MARKPCRDUBLICATESIN' in globals():
     MARKPCRDUBLICATESIN = NOSECONDARYALNOUT
 if not 'MARKPCRDUBLICATESOUT' in globals():
     MARKPCRDUBLICATESOUT = OUTDIR + 'markedDuplicates/'
-rule markPCRDuplicates:
+rule picards_mark_PCR_duplicates:
     input:
         bam=MARKPCRDUBLICATESIN + '{sample}.bam',
     output:
@@ -171,14 +172,10 @@ rule markPCRDuplicates:
     params:
         lsfoutfile = MARKPCRDUBLICATESOUT + '{sample}.bam.lsfout.log',
         lsferrfile = MARKPCRDUBLICATESOUT + '{sample}.bam.lsferr.log',
-        removeDuplicates = config['tools']['picard']['markduplicates']['removeDuplicates'],
-        createIndex = config['tools']['picard']['markduplicates']['createIndex'],
         scratch = config['tools']['picard']['markduplicates']['scratch'],
         mem = config['tools']['picard']['markduplicates']['mem'],
         time = config['tools']['picard']['markduplicates']['time'],
-        assume_sorted = config['tools']['picard']['markduplicates']['assume_sorted'],
-        max_records_in_ram = config['tools']['picard']['markduplicates']['max_records_in_ram'],
-        max_file_handles_for_read_ends_map = config['tools']['picard']['markduplicates']['max_file_handles_for_read_ends_map']
+        params = config['tools']['picard']['markduplicates']['params']
     threads:
         config['tools']['picard']['markduplicates']['threads']
     benchmark:
@@ -191,13 +188,9 @@ rule markPCRDuplicates:
         'MarkDuplicates ' +
         'INPUT={input.bam} ' +
         'OUTPUT={output.bam}  ' +
-        'ASSUME_SORTED={params.assume_sorted} ' +
-        'MAX_FILE_HANDLES_FOR_READ_ENDS_MAP={params.max_file_handles_for_read_ends_map} ' +
-        'MAX_RECORDS_IN_RAM={params.max_records_in_ram} ' +
+        '{params.params} ' +
         'TMP_DIR={TMPDIR} ' +
         'METRICS_FILE={log.metrics} ' +
-        'REMOVE_DUPLICATES={params.removeDuplicates} ' +
-        'CREATE_INDEX={params.createIndex} ' +
         '2> {log.log}')
 
 # This rule removed the previously marked PCR duplicates
@@ -205,7 +198,7 @@ if not 'REMOVEPCRDUBLICATESIN' in globals():
     REMOVEPCRDUBLICATESIN = MARKPCRDUBLICATESOUT
 if not 'REMOVEPCRDUBLICATESOUT' in globals():
     REMOVEPCRDUBLICATESOUT = OUTDIR + 'removedPcrDuplicates/'
-rule removePCRDuplicates:
+rule samtools_remove_PCR_duplicates:
     input:
         bam=REMOVEPCRDUBLICATESIN + '{sample}.bam',
     output:
@@ -229,7 +222,7 @@ if not 'REASSIGNONEMAPPINGQUALIN' in globals():
     REASSIGNONEMAPPINGQUALIN = OUTDIR + '.reassing_one_mapping_quality_in'
 if not 'REASSIGNONEMAPPINGQUALOUT' in globals():
     REASSIGNONEMAPPINGQUALOUT = OUTDIR + '.reassing_one_mapping_quality_out'
-rule reassignOneMappingQualityFilter:
+rule gatk_reassign_one_mapping_quality_filter:
     input:
         bam=REASSIGNONEMAPPINGQUALIN + '{sample}.bam',
         bamIdx=REASSIGNONEMAPPINGQUALIN + '{sample}.bam.index',
@@ -285,7 +278,7 @@ def getSamplesFromExperimentId(wildcards):
 
     if config['tools']['GATK']['realign']['realignFilesFromExperimentTogether'] == "Y":
         if wildcards.experiment not in expMap.keys():
-            #raise ValueError(wildcards.experiment + " is not a valid experiment ID!")
+            #print("Experiment " + wildcards.experiment + " is unknown!")
             return "UnknownExperiment"
     elif config['tools']['GATK']['realign']['realignFilesFromExperimentTogether'] == "N":
         if wildcards.experiment not in expMap.keys():
@@ -294,12 +287,16 @@ def getSamplesFromExperimentId(wildcards):
     return expMap[wildcards.experiment]
 
 def getBamsFromExperimentId(wildcards):
+    #print("wildcards: ", wildcards)
+    #print("getSamplesFromExperimentId: ", getSamplesFromExperimentId(wildcards))
     return expand('{sample}.bam', sample = getSamplesFromExperimentId(wildcards))
 
 def getBaisFromExperimentId(wildcards):
     return expand('{sample}.bai', sample = getSamplesFromExperimentId(wildcards))
 
 def getBamsToRealingFromExperimentId(wildcards):
+    #print("wildcards: ", wildcards)
+    #print("getBamsFromExperimentId: ", getBamsFromExperimentId(wildcards))
     return expand(REALIGNINDELSIN + '{bam}', bam = getBamsFromExperimentId(wildcards))
 
 def getBaisToRealingFromExperimentId(wildcards):
@@ -321,8 +318,12 @@ def getDataBasisForRealign():
 def prependDataBasisForRealignTargetCreator():
     out = ""
     if config['tools']['GATK']['realign']['Mills_indels'] == "Y":
+        if isinstance(config['resources'][ORGANISM]['Mills_indels'], Error):
+            print("You have not specified config[resources][ORGANISM][Mills_indels]")
         out += " --known " + config['resources'][ORGANISM]['Mills_indels']
     if config['tools']['GATK']['realign']['1000G_indels'] == "Y":
+        if isinstance(config['resources'][ORGANISM]['1000G_indels'], Error):
+            print("You have not specified config[resources][ORGANISM][1000G_indels]")
         out += " --known " + config['resources'][ORGANISM]['1000G_indels']
     return out
 
@@ -331,7 +332,7 @@ if not 'REALIGNINDELSIN' in globals():
     REALIGNINDELSIN = REMOVEPCRDUBLICATESOUT
 if not 'REALIGNINDELSOUT' in globals():
     REALIGNINDELSOUT = OUTDIR + 'realignedIndels/'
-rule realignTargetCreation:
+rule gatk_realign_target_creation:
     input:
         bam = getBamsToRealingFromExperimentId,
         bai = getBaisToRealingFromExperimentId,
@@ -377,14 +378,18 @@ rule createRealingIndelsInOutMapping:
 def prependDataBasisForTargetRealigner():
     out = ""
     if config['tools']['GATK']['realign']['Mills_indels'] == "Y":
+        if isinstance(config['resources'][ORGANISM]['Mills_indels'], Error):
+            print("You have not specified config[resources][ORGANISM][Mills_indels]")
         out += " -known " + config['resources'][ORGANISM]['Mills_indels']
     if config['tools']['GATK']['realign']['1000G_indels'] == "Y":
+        if isinstance(config['resources'][ORGANISM]['1000G_indels'], Error):
+            print("You have not specified config[resources][ORGANISM][1000G_indels]")
         out += " -known " + config['resources'][ORGANISM]['1000G_indels']
     return out
 # Rule to perform the indel realignment
 # This is a GATK tool
 #ruleorder: realignIndels > createIndex
-rule realignIndels:
+rule gatk_realign_indels:
     input:
         bam = getBamsToRealingFromExperimentId,
         bai = getBaisToRealingFromExperimentId,
@@ -456,9 +461,10 @@ rule getRealignedBam:
     output:
         bam = REALIGNINDELSOUT + '{sample}.bam'
     params:
+        dirName = REALIGNINDELSOUT,
         originalBam = REALIGNINDELSOUT + 'ORIGINAL_{sample}.bam'
     shell:
-        'ln -s {params.originalBam} {output.bam}'
+        'cd {params.dirName}; ln -s ORIGINAL_{wildcards.sample}.bam {wildcards.sample}.bam'
 
 def getDataBasisForBaseRecalibration():
     out = []
@@ -474,10 +480,16 @@ def getDataBasisForBaseRecalibration():
 def prependDataBasisForBaseRecalibration():
     out = ""
     if config['tools']['GATK']['baseRecalibrator']['Mills_indels'] == "Y":
+        if isinstance(config['resources'][ORGANISM]['Mills_indels'], Error):
+            print("You have not specified config[resources][ORGANISM][Mills_indels]")
         out += " -knownSites " + config['resources'][ORGANISM]['Mills_indels']
     if config['tools']['GATK']['baseRecalibrator']['1000G_indels'] == "Y":
+        if isinstance(config['resources'][ORGANISM]['1000G_indels'], Error):
+            print("You have not specified config[resources][ORGANISM][1000G_indels]")
         out += " -knownSites " + config['resources'][ORGANISM]['1000G_indels']
     if config['tools']['GATK']['baseRecalibrator']['dbSNP'] == "Y":
+        if isinstance(config['resources'][ORGANISM]['dbSNP'], Error):
+            print("You have not specified config[resources][ORGANISM][dbSNP]")
         out += " -knownSites " + config['resources'][ORGANISM]['dbSNP']
     return out
 # Rule to create the baserecalibration table used for the baserecalibration
@@ -486,7 +498,7 @@ if not 'BASERECALIBRATIONIN' in globals():
     BASERECALIBRATIONIN = REALIGNINDELSOUT
 if not 'BASERECALIBRATIONOUT' in globals():
     BASERECALIBRATIONOUT = OUTDIR + 'recalibratedBases/'
-rule firstPassCreateRecalibrationTable:
+rule gatk_first_pass_create_recalibration_table:
     input:
         bam = BASERECALIBRATIONIN + '{sample}.bam',
         bai = BASERECALIBRATIONIN + '{sample}.bai',
@@ -555,7 +567,7 @@ rule secondPassCreateRecalibrationTable:
 
 # Rule to realing the reads around indels
 # This is a GATK tool
-rule baseRecalibration:
+rule gatk_base_recalibration:
     input:
         bam = BASERECALIBRATIONIN + '{sample}.bam',
         bai = BASERECALIBRATIONIN + '{sample}.bai',
@@ -581,3 +593,64 @@ rule baseRecalibration:
         '-I {input.bam} ' +
         '-o {output.bam} ' +
         '-BQSR {input.tab}')
+
+if not 'MPILEUPIN' in globals():
+    MPILEUPIN = BASERECALIBRATIONOUT
+if not 'MPILEUPOUT' in globals():
+    MPILEUPOUT = OUTDIR + 'mpileup/'
+rule mpileupBcf:
+    input:
+        bam = MPILEUPIN + '/{sample}.bam',
+        reference = config['resources'][ORGANISM]['reference'],
+        regions = config['resources'][ORGANISM]['regions']
+    output:
+        bcf = temp(MPILEUPOUT + '/{sample}.bcf')
+    priority: 25
+    params:
+        lsfoutfile = MPILEUPOUT + '/{sample}.bcf.lsfout.log',
+        lsferrfile = MPILEUPOUT + '/{sample}.bcf.lsferr.log'
+    threads:
+        config['tools']['samtools']['mpileup']['threads']
+    benchmark:
+        MPILEUPOUT + '/{sample}.bcf.benchmark'
+    log:
+        MPILEUPOUT + '/{sample}.bcf.log'
+    shell:
+        ('{config[tools][samtools][call]} ' +
+        'mpileup ' +
+        '--output-tags DP4,DP -C50 -E -g ' +
+        '-f {input.reference} ' +
+        '-o {output.bcf} ' +
+        '-l {input.regions} ' +
+        '{input.bam} ' +
+        '2>&1 >{log} ' +
+        '&& touch {output.suc}')
+
+rule mpileupMpileup:
+    input:
+        bam = MPILEUPIN + '{sample}.bam',
+        reference = config['resources'][ORGANISM]['reference'],
+        regions = config['resources'][ORGANISM]['regions']
+    output:
+        mpileup = temp(MPILEUPOUT + '{sample}.mpileup')
+    params:
+        lsfoutfile = MPILEUPOUT + '{sample}.mpileup.lsfout.log',
+        lsferrfile = MPILEUPOUT + '{sample}.mpileup.lsferr.log',
+        scratch = config['tools']['samtools']['mpileup']['scratch'],
+        mem = config['tools']['samtools']['mpileup']['mem'],
+        time = config['tools']['samtools']['mpileup']['time'],
+        params = config['tools']['samtools']['mpileup']['params']
+    threads:
+        config['tools']['samtools']['mpileup']['threads']
+    benchmark:
+        MPILEUPOUT + '{sample}.mpileup.benchmark'
+    log:
+        MPILEUPOUT + '{sample}.mpileup.log'
+    shell:
+        ('{config[tools][samtools][call]} mpileup ' +
+        '{params.params} ' + 
+        '-f {input.reference} ' + 
+        '-o {output.mpileup} ' + 
+        '-l {input.regions} ' +
+        '{input.bam} ')
+

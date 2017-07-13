@@ -6,12 +6,12 @@ rule createBedForQualimap:
     output:
         regions = config['resources'][ORGANISM]['regions'] + '_qual.bed'
     shell:
-        'awk \'{{if(NF > 1){{printf $0; for(i = NF; i < 6; ++i){{printf \"\\t*\"}}; printf \"\\n\"}}}}\' {input.regions} > {output.regions}'
+        'awk \'{{sub(/\r/,\"\"); if(NF > 1){{printf $0; for(i = NF; i < 6; ++i){{printf \"\\t*\"}}; printf \"\\n\"}}}}\' {input.regions} > {output.regions}'
 
-rule qualCheckBam:
+rule qualimap_PDF:
     input:
         bam = '{sample}.bam',
-        regions = config['resources'][ORGANISM]['regions'] + '_qual.bed'
+        regions = config['tools']['qualimap']['regions']
     output:
         dir = '{sample}.bam_stats',
         file = '{sample}.bam_stats/report.pdf'
@@ -26,8 +26,64 @@ rule qualCheckBam:
     threads:
         config['tools']['qualimap']['threads']
     shell:
-        'if [[ ! -n $({config[tools][samtools][call]} view {input.bam} | head -n 1) ]]; then touch {output.file}; else {config[tools][qualimap][call]} bamqc -bam {input.bam} -outdir {output.dir} -outfile report.pdf -outformat PDF -os -feature-file {input.regions} --java-mem-size={config[tools][qualimap][mem]}M; fi'
+        'if [[ ! -n $({config[tools][samtools][call]} view {input.bam} | head -n 1) ]]; then touch {output.file}; else {config[tools][qualimap][call]} bamqc -bam {input.bam} -outdir {output.dir} -outformat PDF -os -feature-file {input.regions} --java-mem-size={config[tools][qualimap][mem]}M; fi'
 
+rule qualimap_HTML:
+    input:
+        bam = '{sample}.bam',
+        regions = config['resources'][ORGANISM]['regions'] + '_qual.bed'
+    output:
+        dir = '{sample}.bam_stats',
+        file = '{sample}.bam_stats/qualimapReport.html'
+    params:
+        lsfoutfile = '{sample}.bam_stats/qualimapReport.html.lsfout.log',
+        lsferrfile = '{sample}.bam_stats/qualimapReport.html.lsferr.log',
+        scratch = config['tools']['qualimap']['scratch'],
+        mem = config['tools']['qualimap']['mem'],
+        time = config['tools']['qualimap']['time']
+    benchmark:
+        '{sample}.bam_stats/qualimapReport.html.benchmark'
+    threads:
+        config['tools']['qualimap']['threads']
+    shell:
+        'if [[ ! -n $({config[tools][samtools][call]} view {input.bam} | head -n 1) ]]; then touch {output.file}; else {config[tools][qualimap][call]} bamqc -bam {input.bam} -outdir {output.dir} -outformat HTML -os -feature-file {input.regions} --java-mem-size={config[tools][qualimap][mem]}M; fi'
+
+rule multiqcBam:
+    input:
+        qualimap = expand('{{analysisStep}}/{sample}.bam_stats/qualimapReport.html', sample = SAMPLENAMES),
+        samtools = expand('{{analysisStep}}/{sample}.bam.flagstat', sample = SAMPLENAMES),
+    output:
+        '{analysisStep}/multiqc_report.html'
+    params:
+        lsfoutfile = '{analysisStep}/multiqc_report.html.lsfout.log',
+        lsferrfile = '{analysisStep}/multiqc_report.html.lsferr.log',
+        scratch = config['tools']['multiqc']['scratch'],
+        mem = config['tools']['multiqc']['mem'],
+        time = config['tools']['multiqc']['time']
+    benchmark:
+        '{analysisStep}/multiqc_report.html.benchmark'
+    threads:
+        config['tools']['multiqc']['threads']
+    shell:
+        '{config[tools][multiqc][call]} --outdir {wildcards.analysisStep} --filename multiqc_report.html {config[tools][multiqc][params]} {wildcards.analysisStep}'
+
+rule multiqcFastq:
+    input:
+        fastqc = expand('{{analysisStep}}/{fastq}_fastqc.html', fastq = getPairedFastqFiles(SAMPLENAMES)),
+    output:
+        '{analysisStep}/multiqc_report.html'
+    params:
+        lsfoutfile = '{analysisStep}/multiqc_report.html.lsfout.log',
+        lsferrfile = '{analysisStep}/multiqc_report.html.lsferr.log',
+        scratch = config['tools']['multiqc']['scratch'],
+        mem = config['tools']['multiqc']['mem'],
+        time = config['tools']['multiqc']['time']
+    benchmark:
+        '{analysisStep}/multiqc_report.html.benchmark'
+    threads:
+        config['tools']['multiqc']['threads']
+    shell:
+        '{config[tools][multiqc][call]} --ignore *R3_fastqc.html --outdir {wildcards.analysisStep} --filename multiqc_report.html {config[tools][multiqc][params]} {wildcards.analysisStep}'
 # This rule gives statistics about the effect of GATKs base recalibration had on the BAM file.
 rule analyzeCovariates:
     input:
@@ -47,7 +103,13 @@ rule analyzeCovariates:
     threads:
         config['tools']['GATK']['analyzeCovariates']['threads']
     shell:
-        '{config[tools][GATK][call]} -T AnalyzeCovariates -R {input.reference} -before {input.tabBefore} -after {input.tabAfter} -plots {output.pdf}'
+        '{config[tools][GATK][analyzeCovariates][expRscript]}; '
+        '{config[tools][GATK][call]} ' +
+        '-T AnalyzeCovariates ' +
+        '-R {input.reference} ' +
+        '-before {input.tabBefore} ' +
+        '-after {input.tabAfter} ' +
+        '-plots {output.pdf}'
 
 #def getAllFastqFiles(wildcards):
 #    unpaired = expand(ROOTFOLDER + '{files}.fastq.gz', files=PAIREDFASTQFILES)
@@ -82,7 +144,7 @@ rule countReadsInFastq:
     shell:
         'zcat {input.fastq} | wc -l | awk \'{{print $1/4}}\' > {output.count}'
 
-rule runFlagstat:
+rule samtools_flagstat:
     input:
         bam = '{sample}.bam',
     output:
@@ -148,6 +210,7 @@ rule snpHeatmap:
     input:
         vcf = HAPLOTYPECALLEROUT + 'combined.vcf',
     output:
+        tsv = temp(HAPLOTYPECALLEROUT + 'combined_dist.tsv'),
         pdf = HAPLOTYPECALLEROUT + 'combined_dist.pdf',
     params:
         lsfoutfile = HAPLOTYPECALLEROUT + 'combined_dist.pdf.lsfout.log',
@@ -160,4 +223,5 @@ rule snpHeatmap:
     threads:
         config['tools']['snpHeatmap']['threads']
     shell:
-        '{config[tools][snpHeatmap][call]} {input.vcf} {output.pdf}'
+        ('{config[tools][snpHeatmap][prepare]} {input.vcf} {output.tsv}; ' + 
+        '{config[tools][snpHeatmap][call]} {output.tsv} {output.pdf}')
