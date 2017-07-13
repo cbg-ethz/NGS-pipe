@@ -16,7 +16,8 @@ if not 'BICSEQ2OUT' in globals():
     BICSEQ2OUT = OUTDIR + 'bicseq2/'
 rule bicSeq_samtoolsUnique:
     input:
-        bam = BICSEQ2IN + '{sample}.bam'
+        bam = BICSEQ2IN + '{sample}.bam',
+        contigNamnes =config['resources'][ORGANISM]['contigNames']
     output:
         seq = expand(BICSEQ2OUT + '{{sample}}' + '/{contigNames}.seq', contigNames=getContigNames())
     params:
