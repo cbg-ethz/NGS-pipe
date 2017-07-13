@@ -1,63 +1,3 @@
-if not 'MPILEUPIN' in globals():
-    MPILEUPIN = BASERECALIBRATIONOUT
-if not 'MPILEUPOUT' in globals():
-    MPILEUPOUT = OUTDIR + 'mpileup/'
-rule mpileupBcf:
-    input:
-        bam = MPILEUPIN + '/{sample}.bam',
-        reference = config['resources'][ORGANISM]['reference'],
-        regions = config['resources'][ORGANISM]['regions']
-    output:
-        bcf = temp(MPILEUPOUT + '/{sample}.bcf')
-    priority: 25
-    params:
-        lsfoutfile = MPILEUPOUT + '/{sample}.bcf.lsfout.log',
-        lsferrfile = MPILEUPOUT + '/{sample}.bcf.lsferr.log'
-    threads:
-        config['tools']['samtools']['mpileup']['threads']
-    benchmark:
-        MPILEUPOUT + '/{sample}.bcf.benchmark'
-    log:
-        MPILEUPOUT + '/{sample}.bcf.log'
-    shell:
-        ('{config[tools][samtools][call]} ' +
-        'mpileup ' +
-        '--output-tags DP4,DP -C50 -E -g ' +
-        '-f {input.reference} ' +
-        '-o {output.bcf} ' +
-        '-l {input.regions} ' +
-        '{input.bam} ' +
-        '2>&1 >{log} ' +
-        '&& touch {output.suc}')
-
-rule mpileupMpileup:
-    input:
-        bam = MPILEUPIN + '{sample}.bam',
-        reference = config['resources'][ORGANISM]['reference'],
-        regions = config['resources'][ORGANISM]['regions']
-    output:
-        mpileup = temp(MPILEUPOUT + '{sample}.mpileup')
-    params:
-        lsfoutfile = MPILEUPOUT + '{sample}.mpileup.lsfout.log',
-        lsferrfile = MPILEUPOUT + '{sample}.mpileup.lsferr.log',
-        scratch = config['tools']['samtools']['mpileup']['scratch'],
-        mem = config['tools']['samtools']['mpileup']['mem'],
-        time = config['tools']['samtools']['mpileup']['time'],
-        params = config['tools']['samtools']['mpileup']['params']
-    threads:
-        config['tools']['samtools']['mpileup']['threads']
-    benchmark:
-        MPILEUPOUT + '{sample}.mpileup.benchmark'
-    log:
-        MPILEUPOUT + '{sample}.mpileup.log'
-    shell:
-        ('{config[tools][samtools][call]} mpileup ' +
-        '{params.params} ' + 
-        '-f {input.reference} ' + 
-        '-o {output.mpileup} ' + 
-        '-l {input.regions} ' +
-        '{input.bam} ')
-
 
 if not 'VARSCANSNPIN' in globals():
     VARSCANSNPIN = MPILEUPOUT
@@ -181,23 +121,27 @@ rule gatkGenotypeGVCFs:
         '{params.input} ' +
         '-o {output.vcf}')
 
-# THis is a GATK tool
+# This is a GATK tool
+# This is a GATK tool
 if not 'MUTECT2IN' in globals():
     MUTECT2IN = BASERECALIBRATIONOUT
 if not 'MUTECT2OUT' in globals():
-    MUTECT2OUT = OUTDIR + 'variants/mutect2/'
+    MUTECT2OUT = OUTDIR + 'variants/mutect2/raw/'
+if not 'MUTECT2FILTEROUT' in globals():
+    MUTECT2FILTEROUT = OUTDIR + 'variants/mutect2/filter/'
 rule gatkMutect2:
     input:
         tumor = MUTECT2IN + '{tumor}.bam',
         tumorIdx = MUTECT2IN + '{tumor}.bai',
         normal = MUTECT2IN + '{normal}.bam',
         normalIdx = MUTECT2IN + '{normal}.bai',
-        reference = {config['resources'][ORGANISM]['reference']},
-        dbsnp = {config['resources'][ORGANISM]['dbSNP']},
-        cosmic = {config['resources'][ORGANISM]['cosmic']},
-        regions = {config['resources'][ORGANISM]['regions']}
+        reference = config['resources'][ORGANISM]['reference'],
+        dbsnp = config['resources'][ORGANISM]['dbSNP'],
+        cosmic = config['resources'][ORGANISM]['cosmic'],
+        regions = config['resources'][ORGANISM]['regions']
     output:
-        vcf = MUTECT2OUT + '{tumor}_vs_{normal}.vcf'
+        vcf = MUTECT2OUT + '{tumor}_vs_{normal}.vcf',
+        filterVcf = MUTECT2FILTEROUT + '{tumor}_vs_{normal}.vcf'
     params:
         lsfoutfile = MUTECT2OUT + '{tumor}_vs_{normal}.vcf.lsfout.log',
         lsferrfile = MUTECT2OUT + '{tumor}_vs_{normal}.vcf.lsferr.log',
@@ -221,7 +165,9 @@ rule gatkMutect2:
         '--cosmic {input.cosmic} ' +
         '-L {input.regions} ' +
         '-nct {params.threads} ' +
-        '-o {output.vcf}')
+        '-o {output.vcf}; ' + 
+        'grep "^#" {output.vcf} > {output.filterVcf}; ' +
+        'cat {output.vcf} | grep -v \"^#\" | awk \'{{if($7 == \"PASS\"){{print}}}}\' >> {output.filterVcf}')
 
 def getDataBasisForMutect():
     out = []
@@ -555,6 +501,8 @@ if not 'VARDICTIN' in globals():
     VARDICTIN = BASERECALIBRATIONOUT
 if not 'VARDICTOUT' in globals():
     VARDICTOUT = OUTDIR + 'variants/varDict/raw/'
+if not 'VARDICTFILTEROUT' in globals():
+    VARDICTFILTEROUT = OUTDIR + 'variants/varDict/filtered/'
 rule varDict:
     input:
         tumor = VARDICTIN + '{tumor}.bam',
@@ -564,7 +512,8 @@ rule varDict:
         regions = config['resources'][ORGANISM]['regions'],
         ref = config['resources'][ORGANISM]['reference']
     output:
-        vcf = VARDICTOUT + '{tumor}_vs_{normal}.vcf'
+        vcf = VARDICTOUT + '{tumor}_vs_{normal}.vcf',
+        filterVcf = VARDICTFILTEROUT + '{tumor}_vs_{normal}.vcf'
     params:
         lsfoutfile = VARDICTOUT + '{tumor}_vs_{normal}.vcf.lsfout.log',
         lsferrfile = VARDICTOUT + '{tumor}_vs_{normal}.vcf.lsferr.log',
@@ -591,7 +540,9 @@ rule varDict:
         '{config[tools][varDict][varDict2VcfPaired]} ' +
         '-N "TUMOR|NORMAL" ' +
         '-f {params.minAllelFreq} '
-        '> {output.vcf}')
+        '> {output.vcf}; ' +
+        'grep "^#" {output.vcf} > {output.filterVcf}; ' +
+        'cat {output.vcf} | grep -v \"^#\" | awk \'{{if($7 == \"PASS\"){{print}}}}\' >> {output.filterVcf}')
 
 
 if not 'DEEPSNVIN' in globals():

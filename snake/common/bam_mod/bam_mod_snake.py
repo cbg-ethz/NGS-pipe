@@ -318,8 +318,12 @@ def getDataBasisForRealign():
 def prependDataBasisForRealignTargetCreator():
     out = ""
     if config['tools']['GATK']['realign']['Mills_indels'] == "Y":
+        if isinstance(config['resources'][ORGANISM]['Mills_indels'], Error):
+            print("You have not specified config[resources][ORGANISM][Mills_indels]")
         out += " --known " + config['resources'][ORGANISM]['Mills_indels']
     if config['tools']['GATK']['realign']['1000G_indels'] == "Y":
+        if isinstance(config['resources'][ORGANISM]['1000G_indels'], Error):
+            print("You have not specified config[resources][ORGANISM][1000G_indels]")
         out += " --known " + config['resources'][ORGANISM]['1000G_indels']
     return out
 
@@ -374,8 +378,12 @@ rule createRealingIndelsInOutMapping:
 def prependDataBasisForTargetRealigner():
     out = ""
     if config['tools']['GATK']['realign']['Mills_indels'] == "Y":
+        if isinstance(config['resources'][ORGANISM]['Mills_indels'], Error):
+            print("You have not specified config[resources][ORGANISM][Mills_indels]")
         out += " -known " + config['resources'][ORGANISM]['Mills_indels']
     if config['tools']['GATK']['realign']['1000G_indels'] == "Y":
+        if isinstance(config['resources'][ORGANISM]['1000G_indels'], Error):
+            print("You have not specified config[resources][ORGANISM][1000G_indels]")
         out += " -known " + config['resources'][ORGANISM]['1000G_indels']
     return out
 # Rule to perform the indel realignment
@@ -472,10 +480,16 @@ def getDataBasisForBaseRecalibration():
 def prependDataBasisForBaseRecalibration():
     out = ""
     if config['tools']['GATK']['baseRecalibrator']['Mills_indels'] == "Y":
+        if isinstance(config['resources'][ORGANISM]['Mills_indels'], Error):
+            print("You have not specified config[resources][ORGANISM][Mills_indels]")
         out += " -knownSites " + config['resources'][ORGANISM]['Mills_indels']
     if config['tools']['GATK']['baseRecalibrator']['1000G_indels'] == "Y":
+        if isinstance(config['resources'][ORGANISM]['1000G_indels'], Error):
+            print("You have not specified config[resources][ORGANISM][1000G_indels]")
         out += " -knownSites " + config['resources'][ORGANISM]['1000G_indels']
     if config['tools']['GATK']['baseRecalibrator']['dbSNP'] == "Y":
+        if isinstance(config['resources'][ORGANISM]['dbSNP'], Error):
+            print("You have not specified config[resources][ORGANISM][dbSNP]")
         out += " -knownSites " + config['resources'][ORGANISM]['dbSNP']
     return out
 # Rule to create the baserecalibration table used for the baserecalibration
@@ -579,3 +593,64 @@ rule gatk_base_recalibration:
         '-I {input.bam} ' +
         '-o {output.bam} ' +
         '-BQSR {input.tab}')
+
+if not 'MPILEUPIN' in globals():
+    MPILEUPIN = BASERECALIBRATIONOUT
+if not 'MPILEUPOUT' in globals():
+    MPILEUPOUT = OUTDIR + 'mpileup/'
+rule mpileupBcf:
+    input:
+        bam = MPILEUPIN + '/{sample}.bam',
+        reference = config['resources'][ORGANISM]['reference'],
+        regions = config['resources'][ORGANISM]['regions']
+    output:
+        bcf = temp(MPILEUPOUT + '/{sample}.bcf')
+    priority: 25
+    params:
+        lsfoutfile = MPILEUPOUT + '/{sample}.bcf.lsfout.log',
+        lsferrfile = MPILEUPOUT + '/{sample}.bcf.lsferr.log'
+    threads:
+        config['tools']['samtools']['mpileup']['threads']
+    benchmark:
+        MPILEUPOUT + '/{sample}.bcf.benchmark'
+    log:
+        MPILEUPOUT + '/{sample}.bcf.log'
+    shell:
+        ('{config[tools][samtools][call]} ' +
+        'mpileup ' +
+        '--output-tags DP4,DP -C50 -E -g ' +
+        '-f {input.reference} ' +
+        '-o {output.bcf} ' +
+        '-l {input.regions} ' +
+        '{input.bam} ' +
+        '2>&1 >{log} ' +
+        '&& touch {output.suc}')
+
+rule mpileupMpileup:
+    input:
+        bam = MPILEUPIN + '{sample}.bam',
+        reference = config['resources'][ORGANISM]['reference'],
+        regions = config['resources'][ORGANISM]['regions']
+    output:
+        mpileup = temp(MPILEUPOUT + '{sample}.mpileup')
+    params:
+        lsfoutfile = MPILEUPOUT + '{sample}.mpileup.lsfout.log',
+        lsferrfile = MPILEUPOUT + '{sample}.mpileup.lsferr.log',
+        scratch = config['tools']['samtools']['mpileup']['scratch'],
+        mem = config['tools']['samtools']['mpileup']['mem'],
+        time = config['tools']['samtools']['mpileup']['time'],
+        params = config['tools']['samtools']['mpileup']['params']
+    threads:
+        config['tools']['samtools']['mpileup']['threads']
+    benchmark:
+        MPILEUPOUT + '{sample}.mpileup.benchmark'
+    log:
+        MPILEUPOUT + '{sample}.mpileup.log'
+    shell:
+        ('{config[tools][samtools][call]} mpileup ' +
+        '{params.params} ' + 
+        '-f {input.reference} ' + 
+        '-o {output.mpileup} ' + 
+        '-l {input.regions} ' +
+        '{input.bam} ')
+
