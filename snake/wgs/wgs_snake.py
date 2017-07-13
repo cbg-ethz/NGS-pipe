@@ -90,15 +90,7 @@ rule wgs:
         expand(NOSECONDARYALNOUT + '{sample}.bam_stats/report.pdf', sample = SAMPLENAMES),
         expand(REMOVEPCRDUBLICATESOUT + '{sample}.bam.flagstat', sample = SAMPLENAMES),
         expand(REMOVEPCRDUBLICATESOUT + '{sample}.bam_stats/report.pdf', sample = SAMPLENAMES),
-        expand(BICSEQ2OUT + '{sample}/{contigNames}.seq', sample = SAMPLENAMES, contigNames = getContigNames()),
-        expand(BICSEQ2OUT + '{sample}/configNorm.txt', sample = SAMPLENAMES),
-        expand(BICSEQ2OUT + '{sample}/paramsEstimate.txt', sample = SAMPLENAMES),
-        expand(BICSEQ2OUT + '{tumorNormalMatching}/configSeg.txt', tumorNormalMatching = getNormalTumorFiles()),
-        expand(BICSEQ2OUT + '{tumorNormalMatching}.cnvsRaw.txt', tumorNormalMatching = getNormalTumorFiles()),
-        expand(BICSEQ2OUT + '{tumorNormalMatching}.cnvsGenotype.txt', tumorNormalMatching = getNormalTumorFiles()),
-        expand(BICSEQ2OUT + '{tumorNormalMatching}.filtered.txt', tumorNormalMatching = getNormalTumorFiles()),
-        expand(BICSEQ2OUT + '{tumorNormalMatching}.filtered.annotated.hg19_multianno.txt', tumorNormalMatching = getNormalTumorFiles()),
-        expand(VARSCANCNVOUT + '{tumorNormalMatching}.copynumber', tumorNormalMatching = getNormalTumorFiles()),
+        expand(BICSEQ2OUT + '{tumorNormalMatching}.filtered.annotated.hg19_multianno.txt', tumorNormalMatching = getNormalTumorFiles())
     output:
         OUTDIR + 'complete.txt'
     params:
