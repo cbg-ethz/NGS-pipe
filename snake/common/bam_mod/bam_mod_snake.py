@@ -339,17 +339,17 @@ rule gatk_realign_target_creation:
         reference = config['resources'][ORGANISM]['reference'],
         databasis = getDataBasisForRealign()
     output:
-        bed = temp(REALIGNINDELSOUT + '{experiment}.bed'),
+        intervals = temp(REALIGNINDELSOUT + '{experiment}.intervals'),
     params:
-        lsfoutfile = REALIGNINDELSOUT + '{experiment}.bed.lsfout.log',
-        lsferrfile = REALIGNINDELSOUT + '{experiment}.bed.lsferr.log',
+        lsfoutfile = REALIGNINDELSOUT + '{experiment}.intervals.lsfout.log',
+        lsferrfile = REALIGNINDELSOUT + '{experiment}.intervals.lsferr.log',
         scratch = config['tools']['GATK']['realign']['targetCreator']['scratch'],
         mem = config['tools']['GATK']['realign']['targetCreator']['mem'],
         time = config['tools']['GATK']['realign']['targetCreator']['time'],
         input = prependBamsToRealign,
         known = prependDataBasisForRealignTargetCreator(),
     benchmark:
-        REALIGNINDELSOUT + '{experiment}.bed.benchmark'
+        REALIGNINDELSOUT + '{experiment}.intervals.benchmark'
     threads:
         config['tools']['GATK']['realign']['targetCreator']['threads']
     shell:
@@ -358,7 +358,7 @@ rule gatk_realign_target_creation:
         '-R {input.reference} ' +
         '{params.input} ' +
         '{params.known} ' +
-        '-o {output.bed} ' +
+        '-o {output.intervals} ' +
         '-nt {threads}')
 
 localrules: createRealingIndelsInOutMapping
@@ -394,7 +394,7 @@ rule gatk_realign_indels:
         bam = getBamsToRealingFromExperimentId,
         bai = getBaisToRealingFromExperimentId,
         map = REALIGNINDELSOUT + '{experiment}.map',
-        interval = REALIGNINDELSOUT + '{experiment}.bed',
+        intervals = REALIGNINDELSOUT + '{experiment}.intervals',
         reference = config['resources'][ORGANISM]['reference'],
         databasis = getDataBasisForRealign()
     output:
@@ -418,7 +418,7 @@ rule gatk_realign_indels:
         '{params.input} ' +
         '{params.known} ' +
         '--nWayOut {input.map} ' +
-        '-targetIntervals {input.interval} ' +
+        '-targetIntervals {input.intervals} ' +
         '&& touch {output.txt}')
 
 def getExperimentIdFromBam(wildcards):
