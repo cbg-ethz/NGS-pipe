@@ -623,6 +623,7 @@
         },
         "snpHeatmap": {
             "call": "Rscript /path/to/NGS-pipe/scripts/snpHeatmap.R",
+            "prepare": "python3 /path/to/NGS-pipe/scripts/prepareDataForSNPHeatmap.py",
             "scratch": "10000",
             "mem": "10000",
             "time": "60",
