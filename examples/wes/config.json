@@ -106,7 +106,7 @@
         },
         "qualimap":{
             "call": "qualimap ",
-            "regions": "/path/to/targetedregions.bed_qual.bed",
+            "regions": "../resources/nexterarapidcapture_expandedexome_targetedregions.bed_qual.bed",
             "threads": 2,
             "mem": "24000",
             "time": "1400",
