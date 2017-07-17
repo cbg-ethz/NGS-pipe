@@ -56,27 +56,24 @@ tumor-control matched exome data sets from the Sequence Read Archive, installs
 the required programs, downloads the necessary reference files and builds the
 essentials indices. Afterwards, an analysis starting with the mapping of the
 reads via BWA (Li 2009) all the way to the somatic variant calling with
-VarScan2 (Koboldt 2012). If you are using a cluster running LSF all you need to
-do
-is:
+VarScan2 (Koboldt 2012). After the [installation of all tools via conda](https://github.com/cbg-ethz/NGS-pipe/wiki/Installation-&-Testing)
+you can proceed like:
+```sh
+#1. Go to examples folder:
+cd examples/dna
+#2. Download test data: We provide an additional snakemake pipeline to 
+#   download test sequences, databases and adapter files:
+./run_prepare_data_locally.sh
+# This will download 6 test data sets, the adapters, regions file,
+# the human reference and build the BWA database index
+#3. Execute the DNA Pipeline:
+./run_analysis_locally.sh
+# This will execute: RAW --> QC(Trimmomatic) --> Mapping(BWA) --> Sort(Picard)
+# --> Merge(Picard) --> Remove Secondary Alignments(Samtools) --> MarkDuplicates(Picard)
+# --> RemoveDuplicates(Samtools) --> SNV Calling (VarScan2)
 ```
-./run_prepare_data.sh "python3 /path/to/snakemake/bin/snakemake"
-```
-If you do not use a cluster the command is:
-```
-python3 /path/to/snakemake/bin/snakemake -s prepare_data.snake
-```
-Afterwards you can start the analysis by invoking
-```
-./run_SRP051153.sh "python3 /path/to/snakemake/bin/snakemake"
-```
-on a cluster or 
-```
-python3 /path/to/snakemake/bin/snakemake -s SRP051153.snake --configfile config.json"
-```
-on a desktop computer.
 
-An example for RNA-seq data analysis can be found in *examples/rna/*.
+An example for RNA-seq data analysis can be found in *examples/rna/* and [here](https://github.com/cbg-ethz/NGS-pipe/wiki/Installation-&-Testing).
 
 ## References
 Bolger, A. M., Lohse, M., & Usadel, B. (2014). Trimmomatic: a flexible trimmer
