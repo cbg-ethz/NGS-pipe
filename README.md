@@ -16,6 +16,8 @@ pipeline independently resumes the analyses at the appropriate point,
 eliminating the need to rerun the complete analysis or manual deletion of
 erroneous files.
 
+See also the wiki pages of this repository for more information about NGS-pipe.
+
 ## Workflows for WES, WGS, and RNA-seq data
 We have implemented and tested predefined workflows for the automated analysis
 of WES, WGS, and RNA-seq data (Fig. 1).
