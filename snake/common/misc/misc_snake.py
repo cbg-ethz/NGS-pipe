@@ -65,7 +65,8 @@ def getSampleNames():
                 if line.strip() != "":
                     lineSplit = line.strip().split()
                     sample = lineSplit[1]
-                    output.append(sample)
+                    if not (sample in output):
+                        output.append(sample)
     return output
 
 def getExperimentNames():

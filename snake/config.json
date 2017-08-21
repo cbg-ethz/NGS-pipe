@@ -216,7 +216,8 @@
                 "mem": "12000",
                 "time": "1400",
                 "scratch": "12000",
-                "assume_sorted": "true"
+                "assume_sorted": "true",
+                "useOrphans": "N"
             },
             "collectInsertSizeMetrics":{
                 "threads": 1,
@@ -351,7 +352,8 @@
             "threads": 2,
             "mem": "24000",
             "time": "1400",
-            "scratch": "16000"
+            "scratch": "16000",
+            "regions": "" 
         },
         "freebayes":{
             "call": "",

@@ -121,6 +121,23 @@ rule gatkGenotypeGVCFs:
         '{params.input} ' +
         '-o {output.vcf}')
 
+def getDataBasisForMutect2():
+    out = []
+    out.append(config['resources'][ORGANISM]['reference']) # this is a dummy such that something is retured
+    if config['tools']['GATK']['mutect2']['dbSNP']== "Y":
+        out.append(config['resources'][ORGANISM]['dbSNP'])
+    if config['tools']['GATK']['mutect2']['cosmic']== "Y":
+        out.append(config['resources'][ORGANISM]['cosmic'])
+    return out
+
+def prependDataBasisForMutect2():
+    out = ""
+    if config['tools']['GATK']['mutect2']['dbSNP']== "Y":
+        out += " --dbsnp " + config['resources'][ORGANISM]['dbSNP']
+    if config['tools']['GATK']['mutect2']['cosmic']== "Y":
+        out += " --cosmic " + config['resources'][ORGANISM]['cosmic']
+    return out
+
 # This is a GATK tool
 # This is a GATK tool
 if not 'MUTECT2IN' in globals():
@@ -136,8 +153,7 @@ rule gatkMutect2:
         normal = MUTECT2IN + '{normal}.bam',
         normalIdx = MUTECT2IN + '{normal}.bai',
         reference = config['resources'][ORGANISM]['reference'],
-        dbsnp = config['resources'][ORGANISM]['dbSNP'],
-        cosmic = config['resources'][ORGANISM]['cosmic'],
+        dbs = getDataBasisForMutect2,
         regions = config['resources'][ORGANISM]['regions']
     output:
         vcf = MUTECT2OUT + '{tumor}_vs_{normal}.vcf',
@@ -148,7 +164,8 @@ rule gatkMutect2:
         scratch = config['tools']['GATK']['mutect2']['scratch'],
         mem = config['tools']['GATK']['mutect2']['mem'],
         time = config['tools']['GATK']['mutect2']['time'],
-        threads = config['tools']['GATK']['mutect2']['threads']
+        threads = config['tools']['GATK']['mutect2']['threads'],
+        dbs = prependDataBasisForMutect2()
     threads:
         config['tools']['GATK']['mutect2']['threads']
     benchmark:
@@ -161,8 +178,7 @@ rule gatkMutect2:
         '-R {input.reference} ' + 
         '-I:tumor {input.tumor} ' +
         '-I:normal {input.normal} ' +
-        '--dbsnp {input.dbsnp} ' +
-        '--cosmic {input.cosmic} ' +
+        '{params.dbs} ' +
         '-L {input.regions} ' +
         '-nct {params.threads} ' +
         '-o {output.vcf}; ' + 
@@ -197,10 +213,9 @@ rule mutect1:
         tumorIdx = MUTECT1IN + '{tumor}.bai',
         normal = MUTECT1IN + '{normal}.bam',
         normalIdx = MUTECT1IN + '{normal}.bai',
-        reference = {config['resources'][ORGANISM]['reference']},
-        dbsnp = {config['resources'][ORGANISM]['dbSNP']},
-        cosmic = {config['resources'][ORGANISM]['cosmic']},
-        regions = {config['resources'][ORGANISM]['regions']}
+        reference = config['resources'][ORGANISM]['reference'],
+        dbs = getDataBasisForMutect,
+        regions = config['resources'][ORGANISM]['regions']
     output:
         vcf = MUTECT1OUT + '{tumor}_vs_{normal}.vcf',
         out = MUTECT1OUT + '{tumor}_vs_{normal}.txt'
