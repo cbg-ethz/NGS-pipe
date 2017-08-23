@@ -497,7 +497,7 @@
         },
         "varDict":{
             "call": "/path/to/VarDict/bin/VarDict ",
-            "expRscript": "export PATH=/path/tp/Rscript/:$PATH;",
+            "expRscript": "export PATH=/path/to/Rscript:$PATH;",
             "varDictTestSomatic": "/path/to/VarDict/testsomatic.R ",
             "varDict2VcfSomatic": "/path/to/VarDict/var2vcf_somatic.pl ",
             "varDict2VcfPaired": "/path/to/VarDict/var2vcf_paired.pl ",
