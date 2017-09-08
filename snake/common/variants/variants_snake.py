@@ -1,4 +1,3 @@
-
 if not 'VARSCANSNPIN' in globals():
     VARSCANSNPIN = MPILEUPOUT
 if not 'VARSCANSNPOUT' in globals():
@@ -11,7 +10,11 @@ rule varscanSnp:
     priority: 25
     params:
         lsfoutfile = VARSCANSNPOUT + '{sample}.vcf.lsfout.log',
-        lsferrfile = VARSCANSNPOUT + '{sample}.vcf.lsferr.log'
+        lsferrfile = VARSCANSNPOUT + '{sample}.vcf.lsferr.log',
+        scratch = config['tools']['GATK']['pileup2snp']['scratch'],
+        mem = config['tools']['GATK']['pileup2snp']['mem'],
+        time = config['tools']['GATK']['pileup2snp']['time'],
+        params = config['tools']['GATK']['pileup2snp']['params']        
     threads:
         config['tools']['varscan']['pileup2snp']['threads']
     benchmark:
@@ -21,14 +24,9 @@ rule varscanSnp:
     shell:
         ('{config[tools][varscan][call]} mpileup2snp ' +
         '{input.mpileup} ' +
-        '--min-coverage {config[tools][varscan][pileup2snp][minCov]} ' +
-        '--min-reads2 {config[tools][varscan][pileup2snp][minReads2]} ' +
-        '--min-avg-qual {config[tools][varscan][pileup2snp][minAvgQual]} ' +
-        '--min-var-freq {config[tools][varscan][pileup2snp][minVarFreq]} ' +
+        '{params.params} ' +
         '--output-vcf 1 ' +
-        '--p-value {config[tools][varscan][pileup2snp][pValue]} ' +
-        '2>{log} > {output.vcf} ' +
-        '&& touch {output.suc}')
+        '2>{log} > {output.vcf}')
 
 if not 'BCFTOOLSIN' in globals():
     BCFTOOLSIN = MPILEUPOUT
@@ -43,18 +41,21 @@ rule bcftools:
     params:
         lsfoutfile = BCFTOOLSOUT + '{sample}.vcf.lsfout.log',
         lsferrfile = BCFTOOLSOUT + '{sample}.vcf.lsferr.log',
+        scratch = config['tools']['GATK']['bcftools']['bcftools']['scratch'],
+        mem = config['tools']['GATK']['bcftools']['bcftools']['mem'],
+        time = config['tools']['GATK']['bcftools']['bcftools']['time'],
+        params = config['tools']['GATK']['bcftools']['bcftools']['params'] 
     threads:
-        config['tools']['bcftools']['threads']
+        config['tools']['bcftools']['bcftools']['threads']
     benchmark:
         BCFTOOLSOUT + '{sample}.vcf.benchmark'
     log:
         BCFTOOLSOUT + '{sample}.vcf.log'
     shell:
-        ('{config[tools][bcftools][call]} ' +
-        'call -A -v -c ' +
+        ('{config[tools][bcftools][call]} call ' +
+        '{params.params} ' + 
         '-o {output.vcf} ' +
-        '{input.bcf} ' +
-        '&& touch {output.suc}')
+        '{input.bcf} ')
 
 def getGATKVariantFiles():
     names = ''
@@ -80,6 +81,7 @@ rule gatkHaplotypeCaller:
         scratch = config['tools']['GATK']['haplotypeCaller']['scratch'],
         mem = config['tools']['GATK']['haplotypeCaller']['mem'],
         time = config['tools']['GATK']['haplotypeCaller']['time'],
+        params = config['tools']['GATK']['haplotypeCaller']['params'],
     threads:
         config['tools']['GATK']['haplotypeCaller']['threads']
     benchmark:
@@ -89,6 +91,7 @@ rule gatkHaplotypeCaller:
     shell:
         ('{config[tools][GATK][call]} ' +
         '-T HaplotypeCaller ' +
+        '{params.params} ' + 
         '-R {input.reference} ' + 
         '-I {input.bam} ' +
         '--emitRefConfidence GVCF ' +
@@ -98,6 +101,7 @@ rule gatkHaplotypeCaller:
 rule gatkGenotypeGVCFs:
     input:
         vcf = expand(HAPLOTYPECALLEROUT + '{sample}.g.vcf', sample=SAMPLENAMES),
+        reference = config['resources'][ORGANISM]['reference'],
     output:
         vcf = HAPLOTYPECALLEROUT + 'combined.vcf',
     params:
@@ -107,6 +111,7 @@ rule gatkGenotypeGVCFs:
         mem = config['tools']['GATK']['genotypeGVCFs']['mem'],
         time = config['tools']['GATK']['genotypeGVCFs']['time'],
         reference = config['resources'][ORGANISM]['reference'],
+        params = config['tools']['GATK']['genotypeGVCFs']['params'],
         input = getGATKVariantFiles()
     threads:
         config['tools']['GATK']['genotypeGVCFs']['threads']
@@ -117,7 +122,8 @@ rule gatkGenotypeGVCFs:
     shell:
         ('{config[tools][GATK][call]} ' +
         '-T GenotypeGVCFs ' +
-        '-R {params.reference} ' + 
+        '{params.params}' + 
+        '-R {input.reference} ' + 
         '{params.input} ' +
         '-o {output.vcf}')
 
@@ -153,7 +159,7 @@ rule gatkMutect2:
         normal = MUTECT2IN + '{normal}.bam',
         normalIdx = MUTECT2IN + '{normal}.bai',
         reference = config['resources'][ORGANISM]['reference'],
-        dbs = getDataBasisForMutect2,
+        dbs = getDataBasisForMutect2(),
         regions = config['resources'][ORGANISM]['regions']
     output:
         vcf = MUTECT2OUT + '{tumor}_vs_{normal}.vcf',
@@ -165,6 +171,7 @@ rule gatkMutect2:
         mem = config['tools']['GATK']['mutect2']['mem'],
         time = config['tools']['GATK']['mutect2']['time'],
         threads = config['tools']['GATK']['mutect2']['threads'],
+        params = config['tools']['GATK']['mutect2']['params'],
         dbs = prependDataBasisForMutect2()
     threads:
         config['tools']['GATK']['mutect2']['threads']
@@ -175,6 +182,7 @@ rule gatkMutect2:
     shell:
         ('{config[tools][GATK][call]} ' +
         '-T MuTect2 ' +
+        '{params.params} '
         '-R {input.reference} ' + 
         '-I:tumor {input.tumor} ' +
         '-I:normal {input.normal} ' +
@@ -214,7 +222,7 @@ rule mutect1:
         normal = MUTECT1IN + '{normal}.bam',
         normalIdx = MUTECT1IN + '{normal}.bai',
         reference = config['resources'][ORGANISM]['reference'],
-        dbs = getDataBasisForMutect,
+        dbs = getDataBasisForMutect(),
         regions = config['resources'][ORGANISM]['regions']
     output:
         vcf = MUTECT1OUT + '{tumor}_vs_{normal}.vcf',
@@ -226,8 +234,7 @@ rule mutect1:
         mem = config['tools']['mutect1']['mem'],
         time = config['tools']['mutect1']['time'],
         threads = config['tools']['mutect1']['threads'],
-        intervalPadding = config['tools']['mutect1']['intervalPadding'],
-        gapOpenPenalty = config['tools']['mutect1']['gapOpenPenalty'],
+        params = config['tools']['mutect1']['params'],
         tumorName = '{tumor}',
         normalName = '{normal}',
         dbs = prependDataBasisForRealignMutect()
@@ -240,13 +247,12 @@ rule mutect1:
     shell:
         ('{config[tools][mutect1][call]} ' +
         '--analysis_type MuTect ' +
+        '{params.params} ' +
         '--reference_sequence {input.reference} ' +
         '--input_file:tumor {input.tumor} ' +
         '--input_file:normal {input.normal} ' +
         '{params.dbs} ' +
         '--intervals {input.regions} ' +
-        '--interval_padding {params.intervalPadding} ' +
-        '--baqGapOpenPenalty {params.gapOpenPenalty} ' +
         '--out {output.out} ' +
         '--vcf {output.vcf}')
 
@@ -268,6 +274,7 @@ rule varscanSomatic:
         scratch = config['tools']['varscan']['somatic']['scratch'],
         mem = config['tools']['varscan']['somatic']['mem'],
         time = config['tools']['varscan']['somatic']['time'],
+        params = config['tools']['varscan']['somatic']['params'],
         outputTag = VARSCANSOMATICOUT + '{tumor}_vs_{normal}' 
     threads:
         config['tools']['varscan']['somatic']['threads']
@@ -276,9 +283,12 @@ rule varscanSomatic:
     log:
         VARSCANSOMATICOUT + '{tumor}_vs_{normal}.log'
     shell:
-        ('{config[tools][varscan][call]} somatic {input.normal} {input.tumor} {params.outputTag} ' +
+        ('{config[tools][varscan][call]} somatic ' +
+        '{input.normal} ' + 
+        '{input.tumor} ' +
+        '{params.outputTag} ' +
         '--output-vcf 1 ' +
-        '{config[tools][varscan][somatic][params]}')
+        '{params.params}')
         
 # call strelka, currently performed with the help of a shell script, needs to be changed soon!
 # this script calls configureStrelkaWorkflow, then make on the temporary files. Then GATK is used to select only variants in the captured regions
@@ -293,10 +303,10 @@ rule strelka:
         tumorIdx = STRELKAIN + '{tumor}.bai',
         normal = STRELKAIN + '{normal}.bam',
         normalIdx = STRELKAIN + '{normal}.bai',
-        dbSnpDB  = {config['resources'][ORGANISM]['dbSNP']},
-        reference  = {config['resources'][ORGANISM]['reference']},
-        regions = {config['resources'][ORGANISM]['regions']},
-        strelkaConfig = {config['resources'][ORGANISM]['strelkaConfig']}
+        dbSnpDB  = config['resources'][ORGANISM]['dbSNP'],
+        reference  = config['resources'][ORGANISM]['reference'],
+        regions = config['resources'][ORGANISM]['regions'],
+        strelkaConfig = config['resources'][ORGANISM]['strelkaConfig']
     output:
         #vcfSnp = STRELKAOUT + '{tumor}_vs_{normal}.snp.vcf',
         #vcfIndel = STRELKAOUT + '{tumor}_vs_{normal}.indel.vcf',
@@ -351,7 +361,7 @@ rule somaticSniper:
         scratch = config['tools']['somaticSniper']['scratch'],
         mem = config['tools']['somaticSniper']['mem'],
         time = config['tools']['somaticSniper']['time'],
-        outFormat = config['tools']['somaticSniper']['outFormat']
+        params = config['tools']['somaticSniper']['params']
     threads:
         config['tools']['somaticSniper']['threads']
     benchmark:
@@ -361,8 +371,8 @@ rule somaticSniper:
     shell:
         ('{config[tools][somaticSniper][call]} ' + 
         '-f {input.ref} ' +
-        '{config[tools][somaticSniper][params]} ' + 
-        '-F {params.outFormat} ' +
+        '{params.params} ' + 
+        '-F vcf ' +
         '{input.tumor} ' +
         '{input.normal} ' +
         '{output.vcf}')
@@ -377,9 +387,9 @@ rule JointSNVMix2_075_TRAIN:
         tumorIdx = JOINTSNVMIX2_075_IN + '{tumor}.bam.bai', 
         normal = JOINTSNVMIX2_075_IN + '{normal}.bam',
         normalIdx = JOINTSNVMIX2_075_IN + '{normal}.bam.bai',
-        reference = {config['resources'][ORGANISM]['reference']},
-        parameters = {config['resources']['general']['jsvm_0.7.5_jointParams']}, 
-        priors = {config['resources']['general']['jsvm_0.7.5_jointPriors']}
+        reference = config['resources'][ORGANISM]['reference'],
+        parameters = config['resources']['general']['jsvm_0.7.5_jointParams'], 
+        priors = config['resources']['general']['jsvm_0.7.5_jointPriors']
     output:
         jsm = JOINTSNVMIX2_075_OUT + '{tumor}_vs_{normal}_train.jsm'
     params:
@@ -388,9 +398,8 @@ rule JointSNVMix2_075_TRAIN:
         scratch = config['tools']['jointSnvMix2_075']['train']['scratch'],
         mem = config['tools']['jointSnvMix2_075']['train']['mem'],
         time = config['tools']['jointSnvMix2_075']['train']['time'],
-        skipSize = config['tools']['jointSnvMix2_075']['train']['skipSize'],
-        convergence_threshold = config['tools']['jointSnvMix2_075']['train']['convergence_threshold'],
         method = config['tools']['jointSnvMix2_075']['method'],
+        params = config['tools']['jointSnvMix2_075']['train']['params'],
     benchmark:
         JOINTSNVMIX2_075_OUT + '{tumor}_vs_{normal}_train.jsm.benchmark'
     threads:
@@ -398,8 +407,7 @@ rule JointSNVMix2_075_TRAIN:
     shell:
         ('{config[tools][jointSnvMix2_075][train][call]} ' +
         '{params.method} ' +
-        '--skip_size {params.skipSize} ' +
-        '{params.convergence_threshold} ' +
+        '{params.params} ' +
         '{input.reference} ' +
         '{input.normal} ' + 
         '{input.tumor} ' +
@@ -423,7 +431,8 @@ rule JointSNVMix2_075_CLASSIFY:
         scratch = config['tools']['jointSnvMix2_075']['classify']['scratch'],
         mem = config['tools']['jointSnvMix2_075']['classify']['mem'],
         time = config['tools']['jointSnvMix2_075']['classify']['time'],
-        method = config['tools']['jointSnvMix2_075']['method']
+        method = config['tools']['jointSnvMix2_075']['method'],
+        params = config['tools']['jointSnvMix2_075']['classify']['params']
     benchmark:
         JOINTSNVMIX2_075_OUT + '{tumor}_vs_{normal}_classify.jsm.benchmark'
     threads:
@@ -431,6 +440,7 @@ rule JointSNVMix2_075_CLASSIFY:
     shell:
         ('{config[tools][jointSnvMix2_075][classify][call]} ' +
         '{params.method} ' +
+        '{params.params} ' +
         '{input.reference} ' +
         '{input.normal} ' +
         '{input.tumor} ' +
@@ -447,9 +457,9 @@ rule JointSNVMix2_TRAIN:
         tumorIdx = JOINTSNVMIX2IN + '{tumor}.bai', 
         normal = JOINTSNVMIX2IN + '{normal}.bam',
         normalIdx = JOINTSNVMIX2IN + '{normal}.bai',
-        reference = {config['resources'][ORGANISM]['reference']},
-        parameters = {config['resources']['general']['jsvmBetaBinParams']}, 
-        priors = {config['resources']['general']['jsvmBetaBinPriors']}
+        reference = config['resources'][ORGANISM]['reference'],
+        parameters = config['resources']['general']['jsvmBetaBinParams'], 
+        priors = config['resources']['general']['jsvmBetaBinPriors']
     output:
         jsm = JOINTSNVMIX2OUT + '{tumor}_vs_{normal}_train.jsm'
     params:
@@ -458,9 +468,7 @@ rule JointSNVMix2_TRAIN:
         scratch = config['tools']['jointSnvMix2']['train']['scratch'],
         mem = config['tools']['jointSnvMix2']['train']['mem'],
         time = config['tools']['jointSnvMix2']['train']['time'],
-        #minBaseQual = '--min_base_qual ' + config['tools']['jointSnvMix2']['minBaseQual'],
-        minBaseQual = '',
-        skipSize = config['tools']['jointSnvMix2']['train']['skipSize'],
+        model = config['tools']['jointSnvMix2']['model'],
         params = config['tools']['jointSnvMix2']['train']['params']
     benchmark:
         JOINTSNVMIX2OUT + '{tumor}_vs_{normal}_train.jsm.benchmark'
@@ -468,10 +476,8 @@ rule JointSNVMix2_TRAIN:
         config['tools']['jointSnvMix2']['train']['threads']
     shell:
         ('{config[tools][jointSnvMix2][train][call]} ' +
-        '{params.minBaseQual} ' +
-        '--skip_size {params.skipSize} ' +
+        '{params.model} ' +
         '{params.params} ' +
-        '--model beta_binomial ' +
         '--priors {input.priors} ' +
         '--initial_parameters_file {input.parameters} ' +
         '{input.reference} ' +
@@ -494,23 +500,27 @@ rule JointSNVMix2_CLASSIFY:
         scratch = config['tools']['jointSnvMix2']['classify']['scratch'],
         mem = config['tools']['jointSnvMix2']['classify']['mem'],
         time = config['tools']['jointSnvMix2']['classify']['time'],
-        minBaseQual = ''
-        #minBaseQual = '--min_base_qual ' + config['tools']['jointSnvMix2']['minBaseQual']
+        model = config['tools']['jointSnvMix2']['model'],        
+        params = config['tools']['jointSnvMix2']['classify']['params'],
+        jsm2Vcf = config['tools']['jointSnvMix2']['jsm2Vcf']['call'],
+        jsm2VcfParams = config['tools']['jointSnvMix2']['jsm2Vcf']['params']
     benchmark:
         JOINTSNVMIX2OUT + '{tumor}_vs_{normal}_classify.jsm.benchmark'
     threads:
         config['tools']['jointSnvMix2']['classify']['threads']
     shell:
         ('{config[tools][jointSnvMix2][classify][call]} ' +
-        '{params.minBaseQual} ' +
-        '--model beta_binomial ' +
+        '{params.model} ' +
+        '{params.params} ' +
         '--out_file {output.jsm} ' +
         '--parameters_file {input.parameters} ' +
-        '--post_process ' +
         '{input.reference} ' +
         '{input.normal} ' +
         '{input.tumor}; '
-        '{config[tools][jointSnvMix2][jsm2Vcf][call]} {output.jsm} {output.vcf} {config[tools][jointSnvMix2][jsm2Vcf][minProb]}')
+        '{params.jsm2Vcf} ' +
+        '{output.jsm} ' +
+        '{output.vcf} ' +
+        '{params.jsm2VcfParams}')
 
 if not 'VARDICTIN' in globals():
     VARDICTIN = BASERECALIBRATIONOUT
@@ -535,7 +545,10 @@ rule varDict:
         scratch = config['tools']['varDict']['scratch'],
         mem = config['tools']['varDict']['mem'],
         time = config['tools']['varDict']['time'],
-        minAllelFreq = config['tools']['varDict']['minAllelFreq'],
+        varDictParams = config['tools']['varDict']['varDictParams'],
+        varDictRegions = config['tools']['varDict']['regions'],
+        varDictTestSomaticParams = config['tools']['varDict']['varDictTestSomaticParams'],
+        varDict2VcfPairedParams = config['tools']['varDict']['varDict2VcfPairedParams'],
         tumor = '{tumor}',
         normal = '{normal}'
     threads:
@@ -548,13 +561,13 @@ rule varDict:
         ('{config[tools][varDict][expRscript]} ' + 
         '{config[tools][varDict][call]} ' + 
         '-G {input.ref} ' +
-        '-f {params.minAllelFreq} ' +
         '-b "{input.tumor}|{input.normal}" ' +
-        '-Q 1 -c 1 -S 2 -E 3 -g 4 {input.regions} | ' +
-        '{config[tools][varDict][varDictTestSomatic]} | ' +
+        '{params.varDictParams} '
+        '{params.varDictRegions} {input.regions} | ' +
+        '{config[tools][varDict][varDictTestSomatic]} {params.varDictTestSomaticParams} | ' +
         '{config[tools][varDict][varDict2VcfPaired]} ' +
         '-N "TUMOR|NORMAL" ' +
-        '-f {params.minAllelFreq} '
+        '{params.varDict2VcfPairedParams} '
         '> {output.vcf}; ' +
         'grep "^#" {output.vcf} > {output.filterVcf}; ' +
         'cat {output.vcf} | grep -v \"^#\" | awk \'{{if($7 == \"PASS\"){{print}}}}\' >> {output.filterVcf}')

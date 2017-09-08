@@ -84,6 +84,7 @@ rule bowtie2_single:
         mem = config['tools']['bowtie2']['mem'],
         time = config['tools']['bowtie2']['time'],
         index = config['resources'][ORGANISM]['bowtie2Index'],
+        params = config['tools']['bowtie2']['params'],
         rg = createReadGroupBowtie2
     benchmark:
         BOWTIEOUT + '{sample}/PAIREDEND/ORPHAN/{fastq}.bam.benchmark'
@@ -100,6 +101,7 @@ rule bowtie2_single:
         '-p {threads} ' +
         '{params.sensitivity} ' +
         '{params.rg} ' +
+        '{params.params} ' +
         '2> {log} | ' +
         '{config[tools][samtools][call]} view -bhS - >{output.bam}')
 
@@ -127,6 +129,7 @@ rule bowtie2_paired:
         mem = config['tools']['bowtie2']['mem'],
         time = config['tools']['bowtie2']['time'],
         index = config['resources'][ORGANISM]['bowtie2Index'],
+        params = config['tools']['bowtie2']['params'], 
         rg = createReadGroupBowtie2
     benchmark:
         BOWTIEOUT + '{sample}/PAIREDEND/{fastq}.bam.benchmark'
@@ -144,6 +147,7 @@ rule bowtie2_paired:
         '-p {threads} ' +
         '{params.sensitivity} ' +
         '{params.rg} ' +
+        '{params.params} ' +        
         '2> {log} | ' +
         '{config[tools][samtools][call]} view -bhS - >{output.bam}')
 
@@ -246,7 +250,7 @@ rule bwa_aln:
         mem = config['tools']['bwa']['aln']['memory'],
         time = config['tools']['bwa']['aln']['time'],
         index = config['resources'][ORGANISM]['bwaIndex'],
-        trimQual = config['tools']['bwa']['aln']['trimQual'],
+        params = config['tools']['bwa']['aln']['params']
     benchmark:
         BWAALNOUT + '{sample}/PAIREDEND/{fastq}.sai.benchmark'
     threads:
@@ -255,7 +259,7 @@ rule bwa_aln:
         BWAALNOUT + '{sample}/PAIREDEND/{fastq}.sai.log'
     shell:
         ('{config[tools][bwa][aln][call]} ' +
-        '{params.trimQual} ' +
+        '{params.params} ' +        
         '-t {threads} ' +
         '{params.index} ' +
         '{input.fastq} ' +
@@ -277,6 +281,7 @@ rule bwa_sampe:
         mem = config['tools']['bwa']['sampe']['mem'],
         time = config['tools']['bwa']['sampe']['time'],
         index = config['resources'][ORGANISM]['bwaIndex'],
+        params = config['tools']['bwa']['sampe']['params'],
         rg = createReadGroupBwa
     benchmark:
         BWAALNOUT + '{sample}/PAIREDEND/{fastq}.bam.benchmark'
@@ -287,6 +292,7 @@ rule bwa_sampe:
     shell:
         ('{config[tools][bwa][sampe][call]} ' +
         '-r {params.rg} ' +
+        '{params.params} ' +                
         '{params.index} ' +
         '{input.sai1} ' +
         '{input.sai2} ' +
@@ -324,6 +330,7 @@ rule yara_single:
         mem = config['tools']['yara']['mem'],
         time = config['tools']['yara']['time'],
         index = config['resources'][ORGANISM]['yaraIndex'],
+        params = config['tools']['yara']['params'],        
         rg = createReadGroupYara
     benchmark:
         YARAOUT + '{sample}/PAIREDEND/{fastq}_PAIRED.bam.benchmark'
@@ -333,6 +340,7 @@ rule yara_single:
         YARAOUT + '{sample}/PAIREDEND/{fastq}_PAIRED.bam.log'
     shell:
         ('{config[tools][yara][call]} ' +
+        '{params.params} ' +                                
         '-rg {params.rg} ' +
         '-o {output.bam} ' +
         '-e config[tools][yara][paired][error-rate] ' +
@@ -368,6 +376,7 @@ rule yara_paired:
         mem = config['tools']['yara']['mem'],
         time = config['tools']['yara']['time'],
         index = config['resources'][ORGANISM]['yaraIndex'],
+        params = config['tools']['yara']['params'],        
         rg = createReadGroupYara
     benchmark:
         YARAOUT + '{sample}/PAIREDEND/{fastq}_PAIRED.bam.benchmark'
@@ -377,6 +386,7 @@ rule yara_paired:
         YARAOUT + '{sample}/PAIREDEND/{fastq}_PAIRED.bam.log'
     shell:
         ('{config[tools][yara][call]} ' +
+        '{params.params} ' +                                                
         '-rg {params.rg} ' +
         '-o {output.bam} ' +
         '-e config[tools][yara][paired][error-rate] ' +

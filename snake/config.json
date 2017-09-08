@@ -86,6 +86,7 @@
             "mem": "",
             "time": "",
             "threads": 24,
+            "params": "",
             "paired":{
                 "sensitivity": "",
                 "k": "20",
@@ -110,7 +111,7 @@
             },
             "aln":{
                 "call":"/path/to/bwa aln ",
-                "trimQual": "-q 5 ",
+                "params": "-q 5 ",                
                 "scratch": "1000",
                 "memory": "1000",
                 "time": "235",
@@ -118,6 +119,7 @@
             },
             "sampe":{
                 "call":"/path/to/bwa sampe ",
+                "params": "",                                
                 "scratch": "1000",
                 "mem": "1000",
                 "time": "235",
@@ -130,6 +132,7 @@
             "mem": "",
             "time": "",
             "threads": 1,
+            "params": "",                
             "paired":{
                 "error-rate": "",
                 "strata-ratek": ""
@@ -145,7 +148,8 @@
                 "scratch":"2000",
                 "mem": "4000",
                 "time": "20",
-                "threads": 1
+                "threads": 1,
+                "params": ""
             },
             "index":{
                 "scratch": "2000",
@@ -155,7 +159,6 @@
             },
             "mpileup":{
                 "params": "-B -q 25 -Q 20 -d 100000",
-                "outputTags": "DP,DP4,SP,DPR,DV",
                 "scratch": "8000",
                 "mem": "8000",
                 "time": "1400",
@@ -179,10 +182,31 @@
             "threads": 1,
             "mem": "5000",
             "time": "1000",
-            "scratch": "10000"
+            "scratch": "10000",
+            "bcftools":{
+                "threads": 1,
+                "mem": "5000",
+                "time": "1000",
+                "scratch": "10000",
+                "params": "-A -v -c "
+            },
+            "convert":{
+                "threads": 1,
+                "mem": "5000",
+                "time": "1000",
+                "scratch": "10000",
+                "params": "-Oz "
+            },
+            "index":{
+                "threads": 1,
+                "mem": "5000",
+                "time": "1000",
+                "scratch": "10000",
+                "params": ""
+            }
         },
         "picard":{
-            "call": "java -Xmx10G -jar /path/to/picard.jar ",
+            "call": "java -jar /path/to/picard.jar ",
             "markduplicates":{
                 "mem": "12000",
                 "time": "1400",
@@ -197,7 +221,7 @@
                 "scratch": "12000",
                 "threads": 1,
                 "assume_sorted": "false",
-                "max_records_in_ram": "500000"
+                "params": "MAX_RECORDS_IN_RAM=500000"
             },
             "updateVCFSequenceDictionary":{
                 "mem": "12000",
@@ -209,7 +233,8 @@
                 "threads": 1,
                 "mem": "12000",
                 "time": "1400",
-                "scratch": "12000"
+                "scratch": "12000",
+                "params": ""
             },
             "mergeBams":{
                 "threads": 1,
@@ -217,13 +242,15 @@
                 "time": "1400",
                 "scratch": "12000",
                 "assume_sorted": "true",
-                "useOrphans": "N"
+                "useOrphans": "N",
+                "params": ""
             },
             "collectInsertSizeMetrics":{
                 "threads": 1,
                 "mem": "12000",
                 "time": "120",
-                "scratch": "12000"
+                "scratch": "12000",
+                "params": ""
             }
         },
         "GATK":{
@@ -233,13 +260,15 @@
                     "threads": 4,
                     "mem": "6000",
                     "time": "1400",
-                    "scratch": "8000"
+                    "scratch": "8000",
+                    "params": ""
                 },
                 "realignIndels":{
                     "threads": 1,
                     "mem": "24000",
                     "time": "1400",
-                    "scratch": "24000"
+                    "scratch": "24000",
+                    "params": ""                    
                 },
                 "Mills_indels": "Y",
                 "1000G_indels": "Y",
@@ -250,16 +279,25 @@
                 "mem": "24000",
                 "time": "1400",
                 "scratch": "24000",
+                "params": "",                
                 "Mills_indels": "Y",
                 "1000G_indels": "Y",
                 "dbSNP": "Y"
+            },
+            "baseRecalibratorPrintReads":{
+                "threads": 1,
+                "mem": "2000",
+                "time": "100",
+                "scratch": "2000",
+                "params": ""
             },
             "analyzeCovariates":{
                 "expRscript": "export PATH=/path/to/Rscript/:$PATH",
                 "threads": 1,
                 "mem": "16000",
                 "time": "600",
-                "scratch": "16000"
+                "scratch": "16000",
+                "params": ""
             },
             "reassignOneMappingQualityFilter":{
                 "threads": 1,
@@ -273,41 +311,43 @@
                 "threads": 1,
                 "mem": "16000",
                 "time": "1400",
-                "scratch": "16000"
+                "scratch": "16000",
+                "params": ""
             },
             "genotypeGVCFs":{
                 "threads": 1,
                 "mem": "16000",
                 "time": "1400",
-                "scratch": "16000"
+                "scratch": "16000",
+                "params": ""
             },
             "combineVariants":{
                 "threads": 1,
                 "mem": "5000",
                 "time": "500",
                 "scratch": "5000",
-                "minN": "2",
-                "caller_mutect1": "MUTECT1FILTEROUT + '{sample}.annotated.pass.vcf'",
-                "caller_varScan2somatic": "-resource:1000G,known=false,training=true,truth=false,prior=10.0 $$$resources:ORGANISM:1000G_snp$$$",
-                "resource4": "-resource:dbsnp,known=true,training=false,truth=false,prior=2.0 $$$resources:ORGANISM:dbSNP$$$"
+                "specificParams": "-minN 2 -genotypeMergeOptions PRIORITIZE -priority varscan,mutect2,vardict ",
+                "mutect2": "Y",
+                "vardict": "Y",
+                "varscansomatic": "Y"
             },
             "mutect2":{
                 "threads": 1,
                 "mem": "10000",
                 "time": "1400",
-                "scratch": "16000"
+                "scratch": "16000",
+                "params": ""
             }
         },
         "mutect1":{
             "call": "java -Xmx10G -jar /path/to/muTect-1.*.jar ",
-            "intervalPadding": "0",
-            "gapOpenPenalty": "40",
             "scratch": "5000",
             "mem": "10000",
             "time": "1400",
             "threads": 1,
             "dbSNP": "Y",
-            "cosmic": "Y"
+            "cosmic": "Y",
+            "params": ""
         },
         "simpleMutect1Filter":{
             "call": "sh /path/to/NGS-pipe/scripts/simpleMutect1Filter.sh ",
@@ -338,14 +378,16 @@
             "scratch": "5000",
             "mem": "5000",
             "time": "1400",
-            "threads": 1
+            "threads": 1,
+            "params": "-nodownload "
         },
         "snpSift":{
             "call": "java -Xmx5G -jar /path/to/SnpSift.jar ",
             "scratch": "5000",
             "mem": "5000",
             "time": "1400",
-            "threads": 1
+            "threads": 1,
+            "params": "-noLog -noDownload "
         },
         "qualimap":{
             "call": "/path/to/qualimap ",
@@ -353,7 +395,16 @@
             "mem": "24000",
             "time": "1400",
             "scratch": "16000",
-            "regions": "" 
+            "regions": "" ,
+            "params": ""
+        },
+        "multiqc":{
+            "call": "multiqc ",
+            "threads": 1,
+            "mem": "5000",
+            "time": "10",
+            "scratch": "5000",
+            "params": "-p "
         },
         "freebayes":{
             "call": "",
@@ -365,11 +416,10 @@
         "varscan":{
             "call": "java -Xmx20g -jar /path/to/VarScan.jar",
             "pileup2snp":{
-                "minCov": "30",
-                "minReads2": "2",
-                "minAvgQual": "15",
-                "minVarFreq": "0",
-                "pValue" : "1",
+                "threads": 1,
+                "mem": "2000",
+                "time": "1400",
+                "params": "--min-coverage 30 --min-reads2 2 --min-avg-qual 15 --min-var-freq 0 --p-value 1 "
                 "threads": 1
             },
             "somatic":{
@@ -397,7 +447,6 @@
         "somaticSniper":{
             "call": "/path/to/bam-somaticsniper ",
             "params": "-q 25 -Q 15 -s 0.0001",
-            "outFormat": "vcf",
             "scratch": "16000",
             "mem": "16000",
             "time": "1400",
@@ -444,8 +493,7 @@
         "jointSnvMix2":{
             "train":{
                 "call": "python2.7 /path/to/jsm.py train ",
-                "skipSize": "10",
-                "params": "--max_normal_depth 10000 --max_tumour_depth 10000",
+                "params": "--max_normal_depth 10000 --max_tumour_depth 10000 --skip_size  10 ",
                 "scratch": "135000",
                 "mem": "128000",
                 "time": "1400",
@@ -456,31 +504,36 @@
                 "scratch": "64000",
                 "mem": "64000",
                 "time": "1400",
-                "threads": 1
+                "threads": 1,
+                "params": "--post_process "
             },
-            "minBaseQual": "25"
+            "jsm2Vcf":{
+                "call": "JointSNVMixToVcf ",
+                "params": "--min-prob 0.4 "
+            },
+            "model": "--model beta_binomial " 
         },
         "jointSnvMix2_075":{
             "train":{
                 "call": "/path/to/jsm.py train ",
-                "convergence_threshold": "--convergence_threshold 0.01",
-                "skipSize": "10",
                 "scratch": "135000",
                 "mem": "128000",
                 "time": "1400",
-                "threads": 1
+                "threads": 1,
+                "params": "--convergence_threshold 0.01 --skip_size 10"
             },
             "classify":{
                 "call": "/path/to/jsm.py classify ",
                 "scratch": "64000",
                 "mem": "64000",
                 "time": "1400",
-                "threads": 1
+                "threads": 1,
+                "params": ""
             },
             "method": "joint_snv_mix_two"
         },
         "deepSNV":{
-            "call":"/path/to/deepSNV_automated_variants.sh ",
+            "call":"/path/to/NGS-pipe/scripts/deepSNV_automated_variants.sh ",
             "scratch": "10000",
             "mem": "10000",
             "time": "1400",
@@ -488,12 +541,16 @@
             "params": "--also-vcf true --alternative greater"
         },
         "rankCombineVariants":{
-            "call":"/path/to/rank_combination.R",
+            "call":"Rscript /path/to/rank_combination.R",
             "scratch": "10000",
             "mem": "10000",
             "time": "1400",
             "threads": 1,
-            "vcfs": ""
+            "mutect": "Y",
+            "deepSNV": "N",
+            "varscan": "Y",
+            "jsvm": "N",
+            "strelka": "Y"
         },
         "varDict":{
             "call": "/path/to/VarDict/bin/VarDict ",
@@ -501,11 +558,14 @@
             "varDictTestSomatic": "/path/to/VarDict/testsomatic.R ",
             "varDict2VcfSomatic": "/path/to/VarDict/var2vcf_somatic.pl ",
             "varDict2VcfPaired": "/path/to/VarDict/var2vcf_paired.pl ",
-            "minAllelFreq": "0.01",
             "scratch": "20000",
             "mem": "20000",
             "time": "1400",
-            "threads": 3
+            "threads": 3,
+            "varDictParams": "-f 0.01 -Q 1 ",
+            "regions": "-c 1 -S 2 -E 3 -g 4 ",
+            "varDictTestSomaticParams": "",
+            "varDict2VcfPairedParams": "-f 0.01"
         },
         "varDictSplitBed":{
             "call": "python3 /path/to/split_mergedBed.py ",
@@ -614,14 +674,16 @@
             "mem": "10000",
             "time": "60",
             "threads": 1,
-            "buildver" : "hg19"
+            "buildver" : "hg19",
+            "params": "-remove -protocol ensGene,knownGene -operation g,g -nastring . --otherinfo "
         },
         "fastqc": {
             "call" : "/path/to/fastqc",
             "scratch": "10000",
             "mem": "10000",
             "time": "60",
-            "threads": 1
+            "threads": 1,
+            "params": ""
         },
         "snpHeatmap": {
             "call": "Rscript /path/to/NGS-pipe/scripts/snpHeatmap.R",
@@ -642,6 +704,7 @@
             },
             "region": {
                 "call": "/path/to/bedtools intersect ",
+                "params": "",
                 "scratch": "1000",
                 "mem": "1000",
                 "time": "60",
@@ -649,6 +712,7 @@
             },
             "facets": {
                 "call": "Rscript /path/to/NGS-pipe/scripts/facets.R",
+                "params": "",
                 "scratch": "10000",
                 "mem": "10000",
                 "time": "60",

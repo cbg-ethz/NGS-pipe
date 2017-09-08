@@ -235,6 +235,7 @@ rule varscan_copy_number:
         scratch = config['tools']['varscan']['copyNumber']['scratch'],
         mem = config['tools']['varscan']['copyNumber']['mem'],
         time = config['tools']['varscan']['copyNumber']['time'],
+        params = config['tools']['varscan']['copyNumber']['params'],
         outputTag = VARSCANCNVOUT + '{tumor}_vs_{normal}' 
     threads:
         config['tools']['varscan']['copyNumber']['threads']
@@ -243,8 +244,11 @@ rule varscan_copy_number:
     log:
         VARSCANCNVOUT + '{tumor}_vs_{normal}.copynumber.log'
     shell:
-        ('{config[tools][varscan][call]} copynumber {input.normal} {input.tumor} {params.outputTag} ' +
-        '{config[tools][varscan][copyNumber][params]}')
+        ('{config[tools][varscan][call]} copynumber ' +
+        '{input.normal} ' +
+        '{input.tumor} ' +
+        '{params.outputTag} ' +
+        '{params.params}')
 
 # call VarScan copyCaller
 rule varscan_copy_caller:
@@ -258,6 +262,7 @@ rule varscan_copy_caller:
         scratch = config['tools']['varscan']['copyCaller']['scratch'],
         mem = config['tools']['varscan']['copyCaller']['mem'],
         time = config['tools']['varscan']['copyCaller']['time'],
+        params = config['tools']['varscan']['copyCaller']['params']
     threads:
         config['tools']['varscan']['copyCaller']['threads']
     benchmark:
@@ -268,7 +273,7 @@ rule varscan_copy_caller:
         ('{config[tools][varscan][call]} copyCaller ' +
         '{input.rawCN} ' + 
         '--output-file {output.out} ' +
-        '{config[tools][varscan][copyCaller][params]}')
+        '{params.params}')
 
 rule bicSeq2annovar:
     input:
@@ -302,6 +307,7 @@ rule wgsAnnovar:
         mem = config['tools']['annovar']['mem'],
         time = config['tools']['annovar']['time'],
         buildver = config['tools']['annovar']['buildver'],
+        params = config['tools']['annovar']['params'],
         out = BICSEQ2OUT + '{sample}.filtered.annotated'
     threads:
         config['tools']['annovar']['threads']
@@ -313,7 +319,7 @@ rule wgsAnnovar:
         '{input.db} ' +
         '-buildver {params.buildver} ' +
         '-out {params.out} ' +
-        '-remove -protocol ensGene,knownGene -operation g,g -nastring . --otherinfo')
+        '{params.params}')
 
 if not 'FACETSIN' in globals():
     FACETSIN = BASERECALIBRATIONOUT
@@ -330,7 +336,8 @@ rule createBedForFacets:
         lsferrfile = FACETSOUT + 'snps.vcf.lsferr.log',
         scratch = config['tools']['facets']['region']['scratch'],
         mem = config['tools']['facets']['region']['mem'],
-        time = config['tools']['facets']['region']['time']
+        time = config['tools']['facets']['region']['time'],
+        params = config['tools']['facets']['region']['params']
     threads:
         config['tools']['facets']['region']['threads']
     benchmark:
@@ -338,6 +345,7 @@ rule createBedForFacets:
     shell:
         ('grep "^#" {input.vcf} > {output.vcf}; ' +
         '{config[tools][facets][region][call]} ' +
+        '{params.params} ' +
         '-a {input.vcf} ' +
         '-b {input.regions} ' +
         '>> {output.vcf}')
@@ -354,14 +362,15 @@ rule getSNPInfoForFacets:
         lsferrfile = FACETSOUT + '{tumor}_vs_{normal}.csv.gz.lsferr.log',
         scratch = config['tools']['facets']['snpPileup']['scratch'],
         mem = config['tools']['facets']['snpPileup']['mem'],
-        time = config['tools']['facets']['snpPileup']['time']
+        time = config['tools']['facets']['snpPileup']['time'],
+        params = config['tools']['facets']['snpPileup']['params']
     threads:
         config['tools']['facets']['snpPileup']['threads']
     benchmark:
         FACETSOUT + '{tumor}_vs_{normal}.csv.gz.benchmark'
     shell:
         ('{config[tools][facets][snpPileup][call]} ' +
-        '{config[tools][facets][snpPileup][params]} ' +
+        '{params.params} ' +
         '{input.vcf} ' +
         '{output.csv} ' +
         '{input.normal} ' +
@@ -378,13 +387,15 @@ rule facets:
         lsferrfile = FACETSOUT + '{tumor}_vs_{normal}.cn.lsferr.log',
         scratch = config['tools']['facets']['facets']['scratch'],
         mem = config['tools']['facets']['facets']['mem'],
-        time = config['tools']['facets']['facets']['time']
+        time = config['tools']['facets']['facets']['time'],
+        params = config['tools']['facets']['facets']['params']
     threads:
         config['tools']['facets']['facets']['threads']
     benchmark:
         FACETSOUT + '{tumor}_vs_{normal}.cn.benchmark'
     shell:
         ('{config[tools][facets][facets][call]} ' + 
+        '{params.params} ' +
         '{input.csv} {output.txt} {output.pdf}')
 
 # This rule annotates the CNV call results (for excavator reformatting is needed first)

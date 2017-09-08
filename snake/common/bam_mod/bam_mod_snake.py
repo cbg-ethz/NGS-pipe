@@ -56,7 +56,7 @@ rule picards_fix_mate_pair_and_sort:
         time = config['tools']['picard']['fixMateInformation']['time'],
         sortOrder = config['tools']['picard']['fixMateInformation']['sortOrder'],
         assume_sorted = config['tools']['picard']['fixMateInformation']['assume_sorted'],
-        max_records_in_ram = config['tools']['picard']['fixMateInformation']['max_records_in_ram']
+        params = config['tools']['picard']['fixMateInformation']['params']
     benchmark:
         FIXMATEANDSORTOUT + '{sample}.bam.benchmark'
     threads:
@@ -69,7 +69,7 @@ rule picards_fix_mate_pair_and_sort:
         'OUTPUT={output.bam} ' +
         'SORT_ORDER={params.sortOrder} ' +
         'ASSUME_SORTED={params.assume_sorted} ' +
-        'MAX_RECORDS_IN_RAM={params.max_records_in_ram} ' +
+        '{params.params} ' +
         'TMP_DIR={TMPDIR} ' +
         '2> {log}')
 
@@ -120,6 +120,7 @@ rule picard_merge_bams:
         scratch = config['tools']['picard']['mergeBams']['scratch'],
         mem = config['tools']['picard']['mergeBams']['mem'],
         time = config['tools']['picard']['mergeBams']['time'],
+        params = config['tools']['picard']['mergeBams']['params'],
         input = prependBamsToMerge
     threads:
         config['tools']['picard']['mergeBams']['threads']
@@ -134,6 +135,7 @@ rule picard_merge_bams:
         '{params.input} ' +
         'OUTPUT={output.bam} ' +
         'ASSUME_SORTED={params.assume_sorted} ' +
+        '{params.params} ' +
         '2> {log.log}')
 
 # This rule removes all alignments which are marked as secondary alignment
@@ -346,6 +348,7 @@ rule gatk_realign_target_creation:
         scratch = config['tools']['GATK']['realign']['targetCreator']['scratch'],
         mem = config['tools']['GATK']['realign']['targetCreator']['mem'],
         time = config['tools']['GATK']['realign']['targetCreator']['time'],
+        params = config['tools']['GATK']['realign']['targetCreator']['params'],
         input = prependBamsToRealign,
         known = prependDataBasisForRealignTargetCreator(),
     benchmark:
@@ -359,7 +362,8 @@ rule gatk_realign_target_creation:
         '{params.input} ' +
         '{params.known} ' +
         '-o {output.intervals} ' +
-        '-nt {threads}')
+        '-nt {threads} ' +
+        '{params.params}')
 
 localrules: createRealingIndelsInOutMapping
 rule createRealingIndelsInOutMapping:
@@ -405,6 +409,7 @@ rule gatk_realign_indels:
         scratch = config['tools']['GATK']['realign']['realignIndels']['scratch'],
         mem = config['tools']['GATK']['realign']['realignIndels']['mem'],
         time = config['tools']['GATK']['realign']['realignIndels']['time'],
+        params = config['tools']['GATK']['realign']['realignIndels']['params'],
         input = prependBamsToRealign,
         known = prependDataBasisForTargetRealigner(),
     benchmark:
@@ -419,6 +424,7 @@ rule gatk_realign_indels:
         '{params.known} ' +
         '--nWayOut {input.map} ' +
         '-targetIntervals {input.intervals} ' +
+        '{params.params} ' +
         '&& touch {output.txt}')
 
 def getExperimentIdFromBam(wildcards):
@@ -514,6 +520,7 @@ rule gatk_first_pass_create_recalibration_table:
         scratch = config['tools']['GATK']['baseRecalibrator']['scratch'],
         mem = config['tools']['GATK']['baseRecalibrator']['mem'],
         time = config['tools']['GATK']['baseRecalibrator']['time'],
+        params = config['tools']['GATK']['baseRecalibrator']['params'],
         known = prependDataBasisForBaseRecalibration()
     benchmark:
         BASERECALIBRATIONOUT + '{sample}_firstPass_reca.table.benchmark'
@@ -527,12 +534,13 @@ rule gatk_first_pass_create_recalibration_table:
         '-I {input.bam} ' +
         '{params.known} ' + 
         '-nt {threads} ' +
+        '{params.params} ' +        
         '-o {output.tab}')
 
 # Rule to create the base-recalibration table used to analyze the effect of the baserecalibration
 # This is a GATK tool
 #ruleorder: secondPassCreateRecalibrationTable > firstPassCreateRecalibrationTable
-rule secondPassCreateRecalibrationTable:
+rule gatk_second_pass_create_recalibration_table:
     input:
         bam = BASERECALIBRATIONOUT + '{sample}.bam',
         bai = BASERECALIBRATIONOUT + '{sample}.bai',
@@ -549,6 +557,7 @@ rule secondPassCreateRecalibrationTable:
         scratch = config['tools']['GATK']['baseRecalibrator']['scratch'],
         mem = config['tools']['GATK']['baseRecalibrator']['mem'],
         time = config['tools']['GATK']['baseRecalibrator']['time'],
+        params = config['tools']['GATK']['baseRecalibrator']['params'],
         known = prependDataBasisForBaseRecalibration()
     benchmark:
         BASERECALIBRATIONOUT + '{sample}_secondPass_reca.table.benchmark'
@@ -563,6 +572,7 @@ rule secondPassCreateRecalibrationTable:
         '{params.known} ' +
         '-nt {threads} ' +
         '-BQSR {input.tab} ' +
+        '{params.params} ' +                
         '-o {output.tab}')
 
 # Rule to realing the reads around indels
@@ -579,19 +589,21 @@ rule gatk_base_recalibration:
     params:
         lsfoutfile = BASERECALIBRATIONOUT + '{sample}.bam.lsfout.log',
         lsferrfile = BASERECALIBRATIONOUT + '{sample}.bam.lsferr.log',
-        scratch = config['tools']['GATK']['baseRecalibrator']['scratch'],
-        mem = config['tools']['GATK']['baseRecalibrator']['mem'],
-        time = config['tools']['GATK']['baseRecalibrator']['time']
+        scratch = config['tools']['GATK']['baseRecalibratorPrintReads']['scratch'],
+        mem = config['tools']['GATK']['baseRecalibratorPrintReads']['mem'],
+        params = config['tools']['GATK']['baseRecalibratorPrintReads']['params'],        
+        time = config['tools']['GATK']['baseRecalibratorPrintReads']['time']
     benchmark:
         BASERECALIBRATIONOUT + '{sample}.bam.benchmark'
     threads:
-        config['tools']['GATK']['baseRecalibrator']['threads']
+        config['tools']['GATK']['baseRecalibratorPrintReads']['threads']
     shell:
         ('{config[tools][GATK][call]} ' +
         '-T PrintReads ' +
         '-R {input.reference} ' +
         '-I {input.bam} ' +
         '-o {output.bam} ' +
+        '{params.params} ' +                        
         '-BQSR {input.tab}')
 
 if not 'MPILEUPIN' in globals():
@@ -600,31 +612,31 @@ if not 'MPILEUPOUT' in globals():
     MPILEUPOUT = OUTDIR + 'mpileup/'
 rule mpileupBcf:
     input:
-        bam = MPILEUPIN + '/{sample}.bam',
+        bam = MPILEUPIN + '{sample}.bam',
         reference = config['resources'][ORGANISM]['reference'],
         regions = config['resources'][ORGANISM]['regions']
     output:
-        bcf = temp(MPILEUPOUT + '/{sample}.bcf')
-    priority: 25
+        bcf = temp(MPILEUPOUT + '{sample}.bcf')
     params:
-        lsfoutfile = MPILEUPOUT + '/{sample}.bcf.lsfout.log',
-        lsferrfile = MPILEUPOUT + '/{sample}.bcf.lsferr.log'
+        lsfoutfile = MPILEUPOUT + '{sample}.bcf.lsfout.log',
+        lsferrfile = MPILEUPOUT + '{sample}.bcf.lsferr.log',
+        scratch = config['tools']['samtools']['mpileup']['scratch'],
+        mem = config['tools']['samtools']['mpileup']['mem'],
+        time = config['tools']['samtools']['mpileup']['time'],
+        params = config['tools']['samtools']['mpileup']['params']
     threads:
         config['tools']['samtools']['mpileup']['threads']
     benchmark:
-        MPILEUPOUT + '/{sample}.bcf.benchmark'
+        MPILEUPOUT + '{sample}.bcf.benchmark'
     log:
-        MPILEUPOUT + '/{sample}.bcf.log'
+        MPILEUPOUT + '{sample}.bcf.log'
     shell:
-        ('{config[tools][samtools][call]} ' +
-        'mpileup ' +
-        '--output-tags DP4,DP -C50 -E -g ' +
+        ('{config[tools][samtools][call]} mpileup ' +
+        '{params.params} ' + 
         '-f {input.reference} ' +
         '-o {output.bcf} ' +
         '-l {input.regions} ' +
-        '{input.bam} ' +
-        '2>&1 >{log} ' +
-        '&& touch {output.suc}')
+        '{input.bam}')
 
 rule mpileupMpileup:
     input:
@@ -652,5 +664,5 @@ rule mpileupMpileup:
         '-f {input.reference} ' + 
         '-o {output.mpileup} ' + 
         '-l {input.regions} ' +
-        '{input.bam} ')
+        '{input.bam}')
 

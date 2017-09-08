@@ -20,13 +20,14 @@ rule qualimap_PDF:
         lsferrfile = '{sample}.bam_stats/report.pdf.lsferr.log',
         scratch = config['tools']['qualimap']['scratch'],
         mem = config['tools']['qualimap']['mem'],
-        time = config['tools']['qualimap']['time']
+        time = config['tools']['qualimap']['time'],
+        params = config['tools']['qualimap']['params']
     benchmark:
         '{sample}.bam_stats/report.pdf.benchmark'
     threads:
         config['tools']['qualimap']['threads']
     shell:
-        'if [[ ! -n $({config[tools][samtools][call]} view {input.bam} | head -n 1) ]]; then touch {output.file}; else {config[tools][qualimap][call]} bamqc -bam {input.bam} -outdir {output.dir} -outformat PDF -os -feature-file {input.regions} --java-mem-size={config[tools][qualimap][mem]}M; fi'
+        'if [[ ! -n $({config[tools][samtools][call]} view {input.bam} | head -n 1) ]]; then touch {output.file}; else {config[tools][qualimap][call]} bamqc -bam {input.bam} -outdir {output.dir} -outformat PDF -os -feature-file {input.regions} --java-mem-size={config[tools][qualimap][mem]}M {params.params}; fi'
 
 rule qualimap_HTML:
     input:
@@ -40,13 +41,14 @@ rule qualimap_HTML:
         lsferrfile = '{sample}.bam_stats/qualimapReport.html.lsferr.log',
         scratch = config['tools']['qualimap']['scratch'],
         mem = config['tools']['qualimap']['mem'],
-        time = config['tools']['qualimap']['time']
+        time = config['tools']['qualimap']['time'],
+        params = config['tools']['qualimap']['params']
     benchmark:
         '{sample}.bam_stats/qualimapReport.html.benchmark'
     threads:
         config['tools']['qualimap']['threads']
     shell:
-        'if [[ ! -n $({config[tools][samtools][call]} view {input.bam} | head -n 1) ]]; then touch {output.file}; else {config[tools][qualimap][call]} bamqc -bam {input.bam} -outdir {output.dir} -outformat HTML -os -feature-file {input.regions} --java-mem-size={config[tools][qualimap][mem]}M; fi'
+        'if [[ ! -n $({config[tools][samtools][call]} view {input.bam} | head -n 1) ]]; then touch {output.file}; else {config[tools][qualimap][call]} bamqc -bam {input.bam} -outdir {output.dir} -outformat HTML -os -feature-file {input.regions} --java-mem-size={config[tools][qualimap][mem]}M {params.params}; fi'
 
 rule multiqcBam:
     input:
@@ -59,13 +61,14 @@ rule multiqcBam:
         lsferrfile = '{analysisStep}/multiqc_report.html.lsferr.log',
         scratch = config['tools']['multiqc']['scratch'],
         mem = config['tools']['multiqc']['mem'],
-        time = config['tools']['multiqc']['time']
+        time = config['tools']['multiqc']['time'],
+        params = config['tools']['multiqc']['params']
     benchmark:
         '{analysisStep}/multiqc_report.html.benchmark'
     threads:
         config['tools']['multiqc']['threads']
     shell:
-        '{config[tools][multiqc][call]} --outdir {wildcards.analysisStep} --filename multiqc_report.html {config[tools][multiqc][params]} {wildcards.analysisStep}'
+        '{config[tools][multiqc][call]} --outdir {wildcards.analysisStep} --filename multiqc_report.html {params.params} {wildcards.analysisStep}'
 
 rule multiqcFastq:
     input:
@@ -77,13 +80,21 @@ rule multiqcFastq:
         lsferrfile = '{analysisStep}/multiqc_report.html.lsferr.log',
         scratch = config['tools']['multiqc']['scratch'],
         mem = config['tools']['multiqc']['mem'],
-        time = config['tools']['multiqc']['time']
+        time = config['tools']['multiqc']['time'],
+        params = config['tools']['multiqc']['params']
     benchmark:
         '{analysisStep}/multiqc_report.html.benchmark'
     threads:
         config['tools']['multiqc']['threads']
     shell:
-        '{config[tools][multiqc][call]} --ignore *R3_fastqc.html --outdir {wildcards.analysisStep} --filename multiqc_report.html {config[tools][multiqc][params]} {wildcards.analysisStep}'
+        '{config[tools][multiqc][call]} --ignore *R3_fastqc.html --outdir {wildcards.analysisStep} --filename multiqc_report.html {params.params} {wildcards.analysisStep}'
+
+def exportRScript(path):
+    if path != "":
+        return path + ";"
+    else:
+        return ""
+
 # This rule gives statistics about the effect of GATKs base recalibration had on the BAM file.
 rule analyzeCovariates:
     input:
@@ -97,34 +108,22 @@ rule analyzeCovariates:
         lsferrfile = BASERECALIBRATIONOUT + '{sample}_base_recalibration_report.pdf.lsferr.log',
         scratch = config['tools']['GATK']['analyzeCovariates']['scratch'],
         mem = config['tools']['GATK']['analyzeCovariates']['mem'],
-        time = config['tools']['GATK']['analyzeCovariates']['time']
+        time = config['tools']['GATK']['analyzeCovariates']['time'],
+        params = config['tools']['GATK']['analyzeCovariates']['params'],
+        rScriptPath = exportRScript(config['tools']['GATK']['analyzeCovariates']['expRscript'])
     benchmark:
         BASERECALIBRATIONOUT + '{sample}_base_recalibration_report.pdf.benchmark'
     threads:
         config['tools']['GATK']['analyzeCovariates']['threads']
     shell:
-        '{config[tools][GATK][analyzeCovariates][expRscript]}; '
+        ('{params.rScriptPath} ' +
         '{config[tools][GATK][call]} ' +
         '-T AnalyzeCovariates ' +
         '-R {input.reference} ' +
         '-before {input.tabBefore} ' +
         '-after {input.tabAfter} ' +
-        '-plots {output.pdf}'
-
-#def getAllFastqFiles(wildcards):
-#    unpaired = expand(ROOTFOLDER + '{files}.fastq.gz', files=PAIREDFASTQFILES)
-#    unpaired = [up.replace('PAIREDEND/', 'PAIREDEND/ORPHAN/') for up in unpaired]
-#    paired = expand(ROOTFOLDER + '{files}.fastq.gz', files=PAIREDFASTQFILES)
-#    all = paired + unpaired
-#    return all
-#
-#
-#def getAllFastqCountFiles(wildcards):
-#    fastqs = getAllFastqFiles(wildcards)
-#    counts = []
-#    for fastq in fastqs:
-#        counts.append(fastq.replace('fastq.gz', 'count'))
-#    return counts
+        '-plots {output.pdf} ' +
+        '{params.params}')
 
 rule countReadsInFastq:
     input:
@@ -154,11 +153,12 @@ rule samtools_flagstat:
         scratch = config['tools']['samtools']['flagstat']['scratch'],
         time = config['tools']['samtools']['flagstat']['time'],
         lsfoutfile = '{sample}.bam.flagstat.lsfout.log',
-        lsferrfile = '{sample}.bam.flagstat.lsferr.log'
+        lsferrfile = '{sample}.bam.flagstat.lsferr.log',
+        params = config['tools']['samtools']['flagstat']['params']
     threads:
         config['tools']['samtools']['flagstat']['threads']
     shell:
-        '{config[tools][samtools][call]} flagstat {input.bam} > {output.flagstat}'
+        '{config[tools][samtools][call]} flagstat {params.params} {input.bam} > {output.flagstat}'
 
 # This rule uses qualimap to generate a report about several statistics of a BAM file.
 rule insertSizeMetric:
@@ -173,13 +173,18 @@ rule insertSizeMetric:
         lsferrfile = '{sample}.bam_stats/insert_size_metrics.txt.lsferr.log',
         scratch = config['tools']['picard']['collectInsertSizeMetrics']['scratch'],
         mem = config['tools']['picard']['collectInsertSizeMetrics']['mem'],
-        time = config['tools']['picard']['collectInsertSizeMetrics']['time']
+        time = config['tools']['picard']['collectInsertSizeMetrics']['time'],
+        params = config['tools']['picard']['collectInsertSizeMetrics']['params']
     benchmark:
         '{sample}.bam_stats/insert_size_metrics.txt.benchmark'
     threads:
         config['tools']['picard']['collectInsertSizeMetrics']['threads']
     shell:
-        '{config[tools][picard][call]} CollectInsertSizeMetrics I={input.bam} O={output.txt} H={output.pdf}'
+        ('{config[tools][picard][call]} CollectInsertSizeMetrics ' +
+        'I={input.bam} ' +
+        'O={output.txt} ' +
+        'H={output.pdf} ' +
+        '{params.params}')
 
 # This rule can be used to obtain statistics about a sequencing file using fastqc
 rule fastqc:
@@ -193,13 +198,14 @@ rule fastqc:
         lsferrfile = '{fastq}_fastqc.html.lsferr.log',
         scratch = config['tools']['fastqc']['scratch'],
         mem = config['tools']['fastqc']['mem'],
-        time = config['tools']['fastqc']['time']
+        time = config['tools']['fastqc']['time'],
+        params = config['tools']['fastqc']['params']
     benchmark:
         '{fastq}_fastqc.html.benchmark'
     threads:
         config['tools']['fastqc']['threads']
     shell:
-        '{config[tools][fastqc][call]} {input.fastq}'
+        '{config[tools][fastqc][call]} {params.params} {input.fastq}'
 
 # This rule creates a graphical representation of the relatedness of the samples
 if not 'HAPLOTYPECALLERIN' in globals():
@@ -217,11 +223,12 @@ rule snpHeatmap:
         lsferrfile = HAPLOTYPECALLEROUT + 'combined_dist.pdf.lsferr.log',
         scratch = config['tools']['snpHeatmap']['scratch'],
         mem = config['tools']['snpHeatmap']['mem'],
-        time = config['tools']['snpHeatmap']['time']
+        time = config['tools']['snpHeatmap']['time'],
+        prepare = config['tools']['snpHeatmap']['prepare']
     benchmark:
         HAPLOTYPECALLEROUT + 'combined_dist.pdf.benchmark'
     threads:
         config['tools']['snpHeatmap']['threads']
     shell:
-        ('{config[tools][snpHeatmap][prepare]} {input.vcf} {output.tsv}; ' + 
+        ('{params.prepare} {input.vcf} {output.tsv}; ' + 
         '{config[tools][snpHeatmap][call]} {output.tsv} {output.pdf}')

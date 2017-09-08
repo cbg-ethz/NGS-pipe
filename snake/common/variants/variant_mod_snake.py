@@ -31,15 +31,19 @@ rule bcftoolsConvert:
     params:
         lsfoutfile = '{sample}.vcf.gz.lsfout.log',
         lsferrfile = '{sample}.vcf.gz.lsferr.log',
-        scratch = config['tools']['bcftools']['scratch'],
-        mem = config['tools']['bcftools']['mem'],
-        time = config['tools']['bcftools']['time']
+        scratch = config['tools']['bcftools']['convert']['scratch'],
+        mem = config['tools']['bcftools']['convert']['mem'],
+        time = config['tools']['bcftools']['convert']['time'],
+        params = config['tools']['bcftools']['convert']['params']
     threads:
-        config['tools']['bcftools']['threads']
+        config['tools']['bcftools']['convert']['threads']
     benchmark:
         '{sample}.vcf.gz.benchmark'
     shell:
-        '{config[tools][bcftools][call]} convert -Oz -o {output.vcf} {input.vcf}'
+        ('{config[tools][bcftools][call]} convert ' +
+        '{params.params} ' + 
+        '-o {output.vcf} ' +
+        '{input.vcf}')
         
 # This rule uses bcftools index to index a compressed vcf
 rule bcftoolsIndex:
@@ -50,17 +54,17 @@ rule bcftoolsIndex:
     params:
         lsfoutfile = '{sample}.vcf.gz.csi.lsfout.log',
         lsferrfile = '{sample}.vcf.gz.csi.lsferr.log',
-        scratch = config['tools']['bcftools']['scratch'],
-        mem = config['tools']['bcftools']['mem'],
-        time = config['tools']['bcftools']['time']
+        scratch = config['tools']['bcftools']['index']['scratch'],
+        mem = config['tools']['bcftools']['index']['mem'],
+        time = config['tools']['bcftools']['index']['time'],
+        params = config['tools']['bcftools']['index']['params']        
     threads:
-        config['tools']['bcftools']['threads']
+        config['tools']['bcftools']['index']['threads']
     benchmark:
         '{sample}.vcf.gz.csi.benchmark'
     shell:
-        '{config[tools][bcftools][call]} index {input.vcf}'
+        '{config[tools][bcftools][call]} index {params.params} {input.vcf}'
         
-# This rule uses bcftools index to index a compressed vcf
 if not 'VARSCANCOMPLETEIN' in globals():
     VARSCANCOMPLETEIN = VARSCANUPDATEHEADEROUT
 if not 'VARSCANCOMPLETEOUT' in globals():
@@ -101,13 +105,20 @@ rule snpEff_annotation:
         scratch = config['tools']['snpEff']['scratch'],
         mem = config['tools']['snpEff']['mem'],
         time = config['tools']['snpEff']['time'],
-        dbName = config['tools']['snpEff']['dbName']
+        dbName = config['tools']['snpEff']['dbName'],
+        params = config['tools']['snpEff']['params']
     threads:
         config['tools']['snpEff']['threads']
     benchmark:
         '{sample}.snpEff.vcf.benchmark'
     shell: 
-        '{config[tools][snpEff][call]} ann {params.dbName} -dataDir {input.snpEffDB} -nodownload -s {output.stats} {input.vcf} > {output.vcf}'
+        ('{config[tools][snpEff][call]} ann ' +
+        '{params.dbName} ' +
+        '-dataDir {input.snpEffDB} '
+        '{params.params} ' +
+        '-s {output.stats} ' +
+        '{input.vcf} ' +
+        '> {output.vcf}')
         
 # This rule annotates a vcf file using snpSift and the dbSNP database
 rule snpSift_dbSNP_Annotation:
@@ -148,7 +159,7 @@ rule snpSift_clinVar_annotation:
     benchmark:
         '{sample}.clinVar.vcf.benchmark'
     shell:
-        '{config[tools][snpSift][call]} annotate -noLog -noDownload {input.clinVarDB} {input.vcf} > {output.vcf}'
+        '{config[tools][snpSift][call]} annotate {params.params} {input.clinVarDB} {input.vcf} > {output.vcf}'
         
 # This rule annotates a vcf file using snpSift and the cosmic database
 rule snpSift_COSMIC_annotation:
@@ -162,13 +173,14 @@ rule snpSift_COSMIC_annotation:
         lsferrfile = '{sample}.cosmic.vcf.lsferr.log',
         scratch = config['tools']['snpSift']['scratch'],
         mem = config['tools']['snpSift']['mem'],
-        time = config['tools']['snpSift']['time']
+        time = config['tools']['snpSift']['time'],
+        params = config['tools']['snpSift']['params']        
     threads:
         config['tools']['snpSift']['threads']
     benchmark:
         '{sample}.cosmic.vcf.benchmark'
     shell:
-        '{config[tools][snpSift][call]} annotate -noLog -noDownload {input.cosmicDB} {input.vcf} > {output.vcf}'
+        '{config[tools][snpSift][call]} annotate {params.params} {input.cosmicDB} {input.vcf} > {output.vcf}'
         
 # This rule annotates a vcf file using snpSift and the dbNSFP database (functional annotation)
 rule snpSift_dbNSFP_annotation:
@@ -182,13 +194,14 @@ rule snpSift_dbNSFP_annotation:
         lsferrfile = '{sample}.annotated.vcf.lsferr.log',
         scratch = config['tools']['snpSift']['scratch'],
         mem = config['tools']['snpSift']['mem'],
-        time = config['tools']['snpSift']['time']
+        time = config['tools']['snpSift']['time'],
+        params = config['tools']['snpSift']['params']        
     threads:
         config['tools']['snpSift']['threads']
     benchmark:
         '{sample}.annotated.vcf.benchmark'
     shell:
-        'dbPath=$(readlink {input.dbNSFPDB}) ; {config[tools][snpSift][call]} dbnsfp -db $dbPath {input.vcf} > {output.vcf}'
+        '{config[tools][snpSift][call]} dbnsfp {params.params} -db input.dbNSFPDB {input.vcf} > {output.vcf}'
         
 # This rule filters all "REJECT" lines from the mutect1 result
 if not 'MUTECT1FILTERIN' in globals():
