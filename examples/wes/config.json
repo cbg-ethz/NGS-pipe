@@ -28,7 +28,8 @@
                 "scratch":"2000",
                 "mem": "4000",
                 "time": "20",
-                "threads": 1
+                "threads": 1,
+                "params": ""
             },
             "index":{
                 "scratch": "2000",
@@ -76,20 +77,22 @@
                 "scratch": "12000",
                 "threads": 1,
                 "assume_sorted": "false",
-                "max_records_in_ram": "500000"
+                "params": "MAX_RECORDS_IN_RAM=500000"
             },
             "mergeBams":{
                 "threads": 1,
                 "mem": "12000",
                 "time": "1400",
                 "scratch": "12000",
-                "assume_sorted": "true"
+                "assume_sorted": "true",
+                "useOrphans": "N",
+                "params": ""
             }
         },
         "varscan":{
             "call": "varscan -Xmx20g ",
             "somatic":{
-                "params": "",
+                "params": "--min-coverage 10 --strand-filter 1 --output-vcf 1 --min-var-freq 0 --somatic-p-value 0.99 --p-value 0.99 ",
                 "threads" : 1,
                 "mem": "24000",
                 "time": "1400",
@@ -102,7 +105,8 @@
             "scratch": "10000",
             "mem": "10000",
             "time": "60",
-            "threads": 1
+            "threads": 1,
+            "params": ""
         },
         "qualimap":{
             "call": "qualimap ",
