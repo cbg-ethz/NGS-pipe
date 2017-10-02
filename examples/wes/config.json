@@ -114,7 +114,8 @@
             "threads": 2,
             "mem": "24000",
             "time": "1400",
-            "scratch": "16000"
+            "scratch": "16000",
+            "params": ""
         },
         "trimmomatic": {
             "call": "trimmomatic -Xmx12G ",
