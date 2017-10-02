@@ -97,7 +97,7 @@ rule linkFastqs:
     params:
         outdir = OUTDIR + 'sra/{sample}/PAIREDEND/'
     shell:
-        'cd {params.outdir}; ln -s ../../{wildcards.srr}/PAIREDEND/{wildcards.srr}_{wildcards.mate}.fastq.gz {wildcards.srr}_R{wildcards.mate}.fastq.gz; touch -h {output.fastq}'
+        'cd {params.outdir}; ln -s ../../{wildcards.srr}/PAIREDEND/{wildcards.srr}_{wildcards.mate}.fastq.gz {wildcards.srr}_R{wildcards.mate}.fastq.gz; touch -h {wildcards.srr}_R{wildcards.mate}.fastq.gz'
 
 localrules: createTSVs
 rule createTSVs:
