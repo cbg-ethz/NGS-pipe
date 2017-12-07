@@ -11,7 +11,7 @@ rule createBedForQualimap:
 rule qualimap_PDF:
     input:
         bam = '{sample}.bam',
-        regions = config['tools']['qualimap']['regions']
+        regions = config['resources'][ORGANISM]['regions'] + '_qual.bed' 
     output:
         dir = '{sample}.bam_stats',
         file = '{sample}.bam_stats/report.pdf'
