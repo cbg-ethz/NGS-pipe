@@ -213,7 +213,7 @@
                 "scratch": "12000",
                 "threads": 1,
                 "params": "ASSUME_SORTED=true MAX_FILE_HANDLES_FOR_READ_ENDS_MAP=1000 MAX_RECORDS_IN_RAM=500000 REMOVE_DUPLICATES=false CREATE_INDEX=true"
-            }
+            },
             "fixMateInformation":{
                 "sortOrder": "coordinate",
                 "mem": "12000",
@@ -420,7 +420,6 @@
                 "mem": "2000",
                 "time": "1400",
                 "params": "--min-coverage 30 --min-reads2 2 --min-avg-qual 15 --min-var-freq 0 --p-value 1 "
-                "threads": 1
             },
             "somatic":{
                 "params": "--min-coverage 10 --strand-filter 1 --output-vcf 1 --min-var-freq 0 --somatic-p-value 0.99 --p-value 0.99 ",
