@@ -81,7 +81,7 @@ rule trimmomatic_single:
     benchmark:
         TRIMMOMATICOUT + '{sample}/SINGLEEND/{fastq}.benchmark'
     threads:
-        config['trimmomatic']['single']['threads']
+        config['tools']['trimmomatic']['single']['threads']
     log:
         trimlog = TRIMMOMATICOUT + '{sample}/SINGLEEND/{fastq}_clipTrim.log',
         stdoutlog = TRIMMOMATICOUT + '{sample}/SINGLEEND/{fastq}_clipTrim.stdout.log'
