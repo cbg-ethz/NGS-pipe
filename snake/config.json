@@ -692,6 +692,16 @@
             "time": "60",
             "threads": 1
         },
+	 "bedtools": {
+        "intersect": {
+                "call": "/path/to/bedtools intersect ",
+                "params": "",
+                "scratch": "1000",
+                "mem": "1000",
+                "time": "60",
+                "threads": 1
+            }
+        },
         "facets": {
             "snpPileup": {
                 "call": "/path/to/facets/inst/extcode/snp-pileup",
