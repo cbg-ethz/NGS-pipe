@@ -570,7 +570,7 @@ rule gatk_second_pass_create_recalibration_table:
         '-R {input.reference} ' +
         '-I {input.bam} ' +
         '{params.known} ' +
-        '-nt {threads} ' +
+        '-nct {threads} ' +
         '-BQSR {input.tab} ' +
         '{params.params} ' +                
         '-o {output.tab}')
