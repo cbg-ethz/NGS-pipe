@@ -403,7 +403,7 @@ rule facets:
 rule annotateCNVsWithBedtools:
     input:
         inRes = '{sample}.txt',
-        inDB = config['resources']['H_sapiens_hg19']['geneAnnotationDB'] 
+        inDB = config['resources'][ORGANISM]['geneAnnotationDB'] 
     output:
         out = '{sample}.annotated.txt'
     params:
