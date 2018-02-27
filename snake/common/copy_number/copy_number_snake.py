@@ -343,7 +343,7 @@ rule createBedForFacets:
     benchmark:
         FACETSOUT + 'snps.vcf.benchmark'
     shell:
-        ('grep "^#" {input.vcf} > {output.vcf}; ' +
+        ('zgrep "^#" {input.vcf} > {output.vcf}; ' +
         '{config[tools][facets][region][call]} ' +
         '{params.params} ' +
         '-a {input.vcf} ' +
