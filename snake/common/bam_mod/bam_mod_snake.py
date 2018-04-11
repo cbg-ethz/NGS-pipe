@@ -533,7 +533,7 @@ rule gatk_first_pass_create_recalibration_table:
         '-R {input.reference} ' +
         '-I {input.bam} ' +
         '{params.known} ' + 
-        '-nt {threads} ' +
+        '-nct {threads} ' +
         '{params.params} ' +        
         '-o {output.tab}')
 
