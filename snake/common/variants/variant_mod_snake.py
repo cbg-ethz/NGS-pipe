@@ -249,7 +249,7 @@ rule snpSift_dbNSFP_annotation:
     benchmark:
         '{sample}.annotated.vcf.benchmark'
     shell:
-        '{config[tools][snpSift][call]} dbnsfp {params.params} -db input.dbNSFPDB {input.vcf} > {output.vcf}'
+        '{config[tools][snpSift][call]} dbnsfp {params.params} -db {input.dbNSFPDB} {input.vcf} > {output.vcf}'
         
 # This rule filters all "REJECT" lines from the mutect1 result
 if not 'MUTECT1FILTERIN' in globals():
