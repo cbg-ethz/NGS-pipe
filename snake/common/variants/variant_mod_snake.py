@@ -1,3 +1,4 @@
+"""
 # This rule uses a python script to fill the header of VarScan and freebayes vcf files
 if not 'VARSCANUPDATEHEADERIN' in globals():
     VARSCANUPDATEHEADERIN = VARSCANSOMATICOUT
@@ -21,7 +22,48 @@ rule updateVCFHeader:
         VARSCANUPDATEHEADEROUT + '{sample}.vcf.benchmark'
     shell:
         '{config[tools][updateVCFHeader][call]} {input.vcf} {input.reference} {output.vcf}'
-        
+"""
+
+# extract header of bam file
+# has been tested for bwa
+rule getBamHeader:
+    input:
+        bam = CREATEREFERENCEHEADERIN + '{tumor}.bam'
+    output:
+        txt = CREATEREFERENCEHEADERIN + '{tumor}.header.txt'
+    params:
+        lsfoutfile = CREATEREFERENCEHEADERIN + 'getBamHeader.lsfout.log',
+        lsferrfile = CREATEREFERENCEHEADERIN + 'getBamHeader.lsferr.log',
+        scratch = config['tools']['samtools']['view']['scratch'],
+        mem = config['tools']['samtools']['view']['mem'],
+        time = config['tools']['samtools']['view']['time']
+    threads:
+        config['tools']['samtools']['view']['threads']
+    benchmark:
+        CREATEREFERENCEHEADERIN + 'getBamHeader.benchmark'
+    shell:
+        '{config[tools][samtools][call]} view -H -o {output.txt} {input.bam}'
+
+# based on bam file, extract header and create the file necessary to update the vcf header of varscan and freebayes
+rule createReferenceHeaderFile:
+    input:
+        samHeader = CREATEREFERENCEHEADERIN + '{tumor}.header.txt'
+    output:
+        #txt = CREATEREFERENCEHEADEROUT + 'referenceNames_forVCFheaderUpdate.txt'
+        txt = CREATEREFERENCEHEADEROUT + '{tumor}_vs_{normal}.referenceNames_forVCFheaderUpdate.txt'
+    params:
+        lsfoutfile = CREATEREFERENCEHEADEROUT + 'createReferenceHeaderFile.lsfout.log',
+        lsferrfile = CREATEREFERENCEHEADEROUT + 'createReferenceHeaderFile.lsferr.log',
+        scratch = config['tools']['createReferenceHeaderFile']['scratch'],
+        mem = config['tools']['createReferenceHeaderFile']['mem'],
+        time = config['tools']['createReferenceHeaderFile']['time']
+    threads:
+        config['tools']['createReferenceHeaderFile']['threads']
+    benchmark:
+        CREATEREFERENCEHEADEROUT + 'createReferenceHeaderFile.benchmark'
+    shell:
+        '{config[tools][createReferenceHeaderFile][call]} {input.samHeader} {output.txt}'
+     
 # This rule uses bcftools convert to compress a vcf
 rule bcftoolsConvert:
     input:
