@@ -255,7 +255,6 @@ rule mutect1:
         '--intervals {input.regions} ' +
         '--out {output.out} ' +
         '--vcf {output.vcf}')
-
 # call VarScan somatic
 if not 'VARSCANSOMATICIN' in globals():
     VARSCANSOMATICIN = MPILEUPOUT
@@ -264,10 +263,13 @@ if not 'VARSCANSOMATICOUT' in globals():
 rule varscanSomatic:
     input:
         tumor = VARSCANSOMATICIN + '{tumor}.mpileup',
-        normal = VARSCANSOMATICIN + '{normal}.mpileup'
+        normal = VARSCANSOMATICIN + '{normal}.mpileup',
+        txt = CREATEREFERENCEHEADEROUT + '{tumor}_vs_{normal}.referenceNames_forVCFheaderUpdate.txt'
     output:
         vcfSnp = VARSCANSOMATICOUT + '{tumor}_vs_{normal}.snp.vcf',
-        vcfIndel = VARSCANSOMATICOUT + '{tumor}_vs_{normal}.indel.vcf'
+        vcfIndel = VARSCANSOMATICOUT + '{tumor}_vs_{normal}.indel.vcf',
+        vcfSnpCom = VARSCANUPDATEHEADEROUT + '{tumor}_vs_{normal}.snp.vcf',
+        vcfIndelCom = VARSCANUPDATEHEADEROUT + '{tumor}_vs_{normal}.indel.vcf'
     params:
         lsfoutfile = VARSCANSOMATICOUT + '{tumor}_vs_{normal}.lsfout.log',
         lsferrfile = VARSCANSOMATICOUT + '{tumor}_vs_{normal}.lsferr.log',
@@ -275,7 +277,7 @@ rule varscanSomatic:
         mem = config['tools']['varscan']['somatic']['mem'],
         time = config['tools']['varscan']['somatic']['time'],
         params = config['tools']['varscan']['somatic']['params'],
-        outputTag = VARSCANSOMATICOUT + '{tumor}_vs_{normal}' 
+        outputTag = VARSCANSOMATICOUT + '{tumor}_vs_{normal}'
     threads:
         config['tools']['varscan']['somatic']['threads']
     benchmark:
@@ -283,12 +285,11 @@ rule varscanSomatic:
     log:
         VARSCANSOMATICOUT + '{tumor}_vs_{normal}.log'
     shell:
-        ('{config[tools][varscan][call]} somatic ' +
-        '{input.normal} ' + 
-        '{input.tumor} ' +
-        '{params.outputTag} ' +
+        ('{config[tools][varscan][call]} somatic {input.normal} {input.tumor} {params.outputTag} ' +
         '--output-vcf 1 ' +
-        '{params.params}')
+        '{config[tools][varscan][somatic][params]}; ' +
+        '{config[tools][updateVCFHeader][call]} {output.vcfSnp} {input.txt} {output.vcfSnpCom}; ' +
+        '{config[tools][updateVCFHeader][call]} {output.vcfIndel} {input.txt} {output.vcfIndelCom}')
         
 # call strelka, currently performed with the help of a shell script, needs to be changed soon!
 # this script calls configureStrelkaWorkflow, then make on the temporary files. Then GATK is used to select only variants in the captured regions
