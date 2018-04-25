@@ -20,7 +20,7 @@
             "bwaIndex": "/path/to/ucsc.hg19.fasta_bwa/ucsc.hg19.fasta",
             "soapIndex": "/path/to/soapIndex",
             "pathSnpEffDB": "/path/to/snpeffi_databases/",
-            "strelka1Config": "/path/to/strelka_config_bwa_exome.ini",
+            "strelkaConfig": "/path/to/strelka_config_bwa_exome.ini",
             "strelka2Config": "path/to/strelka2/v2.9.2/configureStrelkaSomaticWorkflow.py.NGS_Pipe.ini",
             "contigNames": "/path/to/ucsc.hg19.contigNames",
             "pathBicSeq2Mappability": "/path/to/pathBicSeq2Mappability",
@@ -359,16 +359,16 @@
             "time": "200",
             "threads": 1
         },
-        "strelka1":{
+        "strelka":{
             "call": "sh /path/to/NGS-pipe/scripts/strelka.sh ",
             "intervalPadding": "0",
-            "strelka1PerlScript": "/path/to/strelka1/1.0.14/x86_64/bin/configureStrelkaWorkflow.pl ",
+            "strelkaPerlScript": "/path/to/strelka1/1.0.14/x86_64/bin/configureStrelkaWorkflow.pl ",
             "scratch": "5000",
             "mem": "10000",
             "time": "1400",
             "threads": 1
         },
-        "strelka1Filter":{
+        "strelkaFilter":{
             "call": "sh /path/to/NGS-pipe-Develop/scripts/strelkaFilter.sh ",
             "scratch": "5000",
             "mem": "1000",

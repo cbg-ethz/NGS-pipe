@@ -294,52 +294,52 @@ rule varscanSomatic:
 # call strelka1, currently performed with the help of a shell script, needs to be changed soon!
 # this script calls configureStrelkaWorkflow, then make on the temporary files. Then GATK is used to select only variants in the captured regions
 # from snv and indel outputs. Finally, snv and indel output are combined
-if not 'STRELKA1IN' in globals():
+if not 'STRELKAIN' in globals():
     STRELKAIN = BASERECALIBRATIONOUT
-if not 'STRELKA1OUT' in globals():
+if not 'STRELKAOUT' in globals():
     STRELKAOUT = OUTDIR + 'variants/strelka/'
-rule strelka1:
+rule strelka:
     input:
-        tumor = STRELKA1IN + '{tumor}.bam',
-        tumorIdx = STRELKA1IN + '{tumor}.bai',
-        normal = STRELKA1IN + '{normal}.bam',
-        normalIdx = STRELKA1IN + '{normal}.bai',
+        tumor = STRELKAIN + '{tumor}.bam',
+        tumorIdx = STRELKAIN + '{tumor}.bai',
+        normal = STRELKAIN + '{normal}.bam',
+        normalIdx = STRELKAIN + '{normal}.bai',
         dbSnpDB  = config['resources'][ORGANISM]['dbSNP'],
         reference  = config['resources'][ORGANISM]['reference'],
         regions = config['resources'][ORGANISM]['regions'],
-        strelkaConfig = config['resources'][ORGANISM]['strelka1Config']
+        strelkaConfig = config['resources'][ORGANISM]['strelkaConfig']
     output:
         #vcfSnp = STRELKAOUT + '{tumor}_vs_{normal}.snp.vcf',
         #vcfIndel = STRELKAOUT + '{tumor}_vs_{normal}.indel.vcf',
-        vcf = STRELKA1OUT + '{tumor}_vs_{normal}.vcf'
+        vcf = STRELKAOUT + '{tumor}_vs_{normal}.vcf'
     params:
-        lsfoutfile = STRELKA1OUT + '{tumor}_vs_{normal}.vcf.lsfout.log',
-        lsferrfile = STRELKA1OUT + '{tumor}_vs_{normal}.vcf.lsferr.log',
-        scratch = config['tools']['strelka1']['scratch'],
-        mem = config['tools']['strelka1']['mem'],
-        time = config['tools']['strelka1']['time'],
-        intervalPadding = config['tools']['strelka1']['intervalPadding'],
-        strelka1PerlScript = config['tools']['strelka1']['strelka1PerlScript'],
-        outDir = STRELKA1OUT,
+        lsfoutfile = STRELKAOUT + '{tumor}_vs_{normal}.vcf.lsfout.log',
+        lsferrfile = STRELKAOUT + '{tumor}_vs_{normal}.vcf.lsferr.log',
+        scratch = config['tools']['strelka']['scratch'],
+        mem = config['tools']['strelka']['mem'],
+        time = config['tools']['strelka']['time'],
+        intervalPadding = config['tools']['strelka']['intervalPadding'],
+        strelkaPerlScript = config['tools']['strelka']['strelkaPerlScript'],
+        outDir = STRELKAOUT,
         outputTag = '{tumor}_vs_{normal}'
     threads:
         config['tools']['strelka']['threads']
     benchmark:
-        STRELKA1OUT + '{tumor}_vs_{normal}.vcf.benchmark'
+        STRELKAOUT + '{tumor}_vs_{normal}.vcf.benchmark'
     log:
-        STRELKA1OUT + '{tumor}_vs_{normal}.vcf.log'
+        STRELKAOUT + '{tumor}_vs_{normal}.vcf.log'
     shell:
-        ('{config[tools][strelka1][call]} ' +
+        ('{config[tools][strelka][call]} ' +
         '{params.outDir} ' +
         '{input.reference} ' + 
         '{input.dbSnpDB} ' +
         '{input.regions} ' +
         '{params.intervalPadding} ' +
-        '{input.strelka1Config} ' +
+        '{input.strelkaConfig} ' +
         '{input.tumor} ' +
         '{input.normal} ' +
         '{params.outputTag} ' +
-        '{params.strelka1PerlScript} ' +
+        '{params.strelkaPerlScript} ' +
         '\"{config[tools][GATK][call]}\"')
 
 # call strelka2, currently performed with the help of a shell script, needs to be changed soon!

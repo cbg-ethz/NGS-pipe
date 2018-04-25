@@ -119,14 +119,14 @@ if not 'VARDICTOUT' in globals():
     VARDICTOUT = OUTDIR + 'variants/varDict/raw/'
 if not 'SOMATICSEQOUT' in globals():
     SOMATICSEQOUT = OUTDIR + 'variants/somatic_seq/'
-if not 'STRELKA1IN' in globals():
-    STRELKA1IN = BASERECALIBRATIONOUT
-if not 'STRELKA1OUT' in globals():
-    STRELKA1OUT = OUTDIR + 'variants/strelka1/'
-if not 'STRELKA1FILTERIN' in globals():
-    STRELKA1FILTERIN = STRELKA1OUT
-if not 'STRELKA1FILTEROUT' in globals():
-    STRELKA1FILTEROUT = OUTDIR + 'variants/strelka1/filtered/'
+if not 'STRELKAIN' in globals():
+    STRELKAIN = BASERECALIBRATIONOUT
+if not 'STRELKAOUT' in globals():
+    STRELKAOUT = OUTDIR + 'variants/strelka/'
+if not 'STRELKAFILTERIN' in globals():
+    STRELKAFILTERIN = STRELKAOUT
+if not 'STRELKAFILTEROUT' in globals():
+    STRELKAFILTEROUT = OUTDIR + 'variants/strelka/filtered/'
 if not 'STRELKA2IN' in globals():
     STRELKA2IN = BASERECALIBRATIONOUT
 if not 'STRELKA2OUT' in globals():

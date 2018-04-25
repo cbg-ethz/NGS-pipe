@@ -278,30 +278,30 @@ rule filterMutect1Reject:
         '{config[tools][simpleMutect1Filter][call]} {input.vcf} {input.txt} {output.vcf} {output.txt}'
         
 # This rule filters rejected lines from the strelka result
-if not 'STRELKA1FILTERIN' in globals():
-    STRELKA1FILTERIN = STRELKA1OUT
-if not 'STRELKA1FILTEROUT' in globals():
-    STRELKA1FILTEROUT = OUTDIR + 'variants/strelka1/filtered/'
-ruleorder: filterStrelka1 > strelka1
-rule filterStrelka1:
+if not 'STRELKAFILTERIN' in globals():
+    STRELKAFILTERIN = STRELKAOUT
+if not 'STRELKAFILTEROUT' in globals():
+    STRELKAFILTEROUT = OUTDIR + 'variants/strelka/filtered/'
+ruleorder: filterStrelka > strelka
+rule filterStrelka:
     input:
-        vcf = STRELKA1FILTERIN + '{sample}.annotated.vcf'
+        vcf = STRELKAFILTERIN + '{sample}.annotated.vcf'
     output:
-        vcf = STRELKA1FILTEROUT + '{sample}.annotated.pass.vcf'
+        vcf = STRELKAFILTEROUT + '{sample}.annotated.pass.vcf'
     params:
-        lsfoutfile = STRELKA1FILTEROUT + '{sample}.annotated.pass.vcf.lsfout.log',
-        lsferrfile = STRELKA1FILTEROUT + '{sample}.annotated.pass.vcf.lsferr.log',
-        scratch = config['tools']['strelka1Filter']['scratch'],
-        mem = config['tools']['strelka1Filter']['mem'],
-        time = config['tools']['strelka1Filter']['time']
+        lsfoutfile = STRELKAFILTEROUT + '{sample}.annotated.pass.vcf.lsfout.log',
+        lsferrfile = STRELKAFILTEROUT + '{sample}.annotated.pass.vcf.lsferr.log',
+        scratch = config['tools']['strelkaFilter']['scratch'],
+        mem = config['tools']['strelkaFilter']['mem'],
+        time = config['tools']['strelkaFilter']['time']
     threads:
-        config['tools']['strelka1Filter']['threads']
+        config['tools']['strelkaFilter']['threads']
     benchmark:
-        STRELKA1FILTEROUT + '{sample}.annotated.pass.vcf.benchmark'
+        STRELKAFILTEROUT + '{sample}.annotated.pass.vcf.benchmark'
     shell:
-        '{config[tools][strelka1Filter][call]} {input.vcf} {output.vcf}'
+        '{config[tools][strelkaFilter][call]} {input.vcf} {output.vcf}'
         
-# This rule filters rejected lines from the strelka result
+# This rule filters rejected lines from the strelka2 result
 if not 'STRELKA2FILTERIN' in globals():
     STRELKA2FILTERIN = STRELKA2OUT
 if not 'STRELKA2FILTEROUT' in globals():
