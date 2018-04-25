@@ -127,6 +127,14 @@ if not 'STRELKAFILTERIN' in globals():
     STRELKAFILTERIN = STRELKAOUT
 if not 'STRELKAFILTEROUT' in globals():
     STRELKAFILTEROUT = OUTDIR + 'variants/strelka/filtered/'
+if not 'STRELKA2IN' in globals():
+    STRELKA2IN = BASERECALIBRATIONOUT
+if not 'STRELKA2OUT' in globals():
+    STRELKA2OUT = OUTDIR + 'variants/strelka2/'
+if not 'STRELKA2FILTERIN' in globals():
+    STRELKA2FILTERIN = STRELKA2OUT
+if not 'STRELKA2FILTEROUT' in globals():
+    STRELKA2FILTEROUT = OUTDIR + 'variants/strelka2/filtered/'
 
 # Definition of some constantly used lists
 

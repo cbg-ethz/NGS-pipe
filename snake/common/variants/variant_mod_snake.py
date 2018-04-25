@@ -301,6 +301,30 @@ rule filterStrelka:
     shell:
         '{config[tools][strelkaFilter][call]} {input.vcf} {output.vcf}'
         
+# This rule filters rejected lines from the strelka2 result
+if not 'STRELKA2FILTERIN' in globals():
+    STRELKA2FILTERIN = STRELKA2OUT
+if not 'STRELKA2FILTEROUT' in globals():
+    STRELKA2FILTEROUT = OUTDIR + 'variants/strelka2/filtered/'
+ruleorder: filterStrelka2 > strelka2
+rule filterStrelka2:
+    input:
+        vcf = STRELKA2FILTERIN + '{sample}.annotated.vcf'
+    output:
+        vcf = STRELKA2FILTEROUT + '{sample}.annotated.pass.vcf'
+    params:
+        lsfoutfile = STRELKA2FILTEROUT + '{sample}.annotated.pass.vcf.lsfout.log',
+        lsferrfile = STRELKA2FILTEROUT + '{sample}.annotated.pass.vcf.lsferr.log',
+        scratch = config['tools']['strelka2Filter']['scratch'],
+        mem = config['tools']['strelka2Filter']['mem'],
+        time = config['tools']['strelka2Filter']['time']
+    threads:
+        config['tools']['strelka2Filter']['threads']
+    benchmark:
+        STRELKA2FILTEROUT + '{sample}.annotated.pass.vcf.benchmark'
+    shell:
+        '{config[tools][strelka2Filter][call]} {input.vcf} {output.vcf}'
+
 # This rule filters annotated vcf files produced by VarScan2 somatic
 if not 'VARSCANSOMATICFILTERIN' in globals():
     VARSCANSOMATICFILTERIN = VARSCANCOMPLETEOUT
@@ -367,25 +391,45 @@ rule updateNormalTumorName:
 def getVcfsForGATKVariantCombine(wildcards):
     out = []
     if not isinstance(config['tools']['GATK']['combineVariants']['mutect'], Error):
-        out.append(MUTECT1FILTEROUT + wildcards.sample +'.vcf')
+        if "Y" == config['tools']['GATK']['combineVariants']['mutect']:
+            out.append(MUTECT1FILTEROUT + wildcards.sample +'.vcf')
     if not isinstance(config['tools']['GATK']['combineVariants']['mutect2'], Error):
-        out.append(MUTECT2FILTEROUT + wildcards.sample +'.vcf')
+        if "Y" == config['tools']['GATK']['combineVariants']['mutect2']:
+            out.append(MUTECT2FILTEROUT + wildcards.sample +'.vcf')
     if not isinstance(config['tools']['GATK']['combineVariants']['vardict'], Error):
-        out.append(VARDICTFILTEROUT + wildcards.sample +'.vcf')
+        if "Y" == config['tools']['GATK']['combineVariants']['vardict']:
+            out.append(VARDICTFILTEROUT + wildcards.sample +'.vcf')
     if not isinstance(config['tools']['GATK']['combineVariants']['varscansomatic'], Error):
-        out.append(VARSCANSOMATICFILTEROUT + wildcards.sample +'.vcf')
+        if "Y" == config['tools']['GATK']['combineVariants']['varscansomatic']:
+            out.append(VARSCANSOMATICFILTEROUT + wildcards.sample +'.vcf')
+    if not isinstance(config['tools']['GATK']['combineVariants']['strelka1'], Error):
+        if "Y" == config['tools']['GATK']['combineVariants']['strelka1']:
+            out.append(STRELKA1FILTEROUT + wildcards.sample +'.vcf')
+    if not isinstance(config['tools']['GATK']['combineVariants']['strelka2'], Error):
+        if "Y" == config['tools']['GATK']['combineVariants']['strelka2']:
+            out.append(STRELKA2FILTEROUT + wildcards.sample +'.vcf')
     return out
 
 def getVcfStringForGATKVariantCombine(wildcards):
     out = []
     if not isinstance(config['tools']['GATK']['combineVariants']['mutect'], Error):
-        out.append('--variant:mutect1 ' + MUTECT1FILTEROUT + wildcards.sample +'.vcf')
+        if "Y" == config['tools']['GATK']['combineVariants']['mutect']:
+            out.append('--variant:mutect1 ' + MUTECT1FILTEROUT + wildcards.sample +'.vcf')
     if not isinstance(config['tools']['GATK']['combineVariants']['mutect2'], Error):
-        out.append('--variant:mutect2 ' + MUTECT2FILTEROUT + wildcards.sample +'.vcf')
+        if "Y" == config['tools']['GATK']['combineVariants']['mutect2']:
+            out.append('--variant:mutect2 ' + MUTECT2FILTEROUT + wildcards.sample +'.vcf')
     if not isinstance(config['tools']['GATK']['combineVariants']['vardict'], Error):
-        out.append('--variant:vardict ' + VARDICTFILTEROUT + wildcards.sample +'.vcf')
+        if "Y" == config['tools']['GATK']['combineVariants']['vardict']:
+            out.append('--variant:vardict ' + VARDICTFILTEROUT + wildcards.sample +'.vcf')
     if not isinstance(config['tools']['GATK']['combineVariants']['varscansomatic'], Error):
-        out.append('--variant:varscan ' + VARSCANSOMATICFILTEROUT + wildcards.sample +'.vcf')
+        if "Y" == config['tools']['GATK']['combineVariants']['varscansomatic']:
+            out.append('--variant:varscan ' + VARSCANSOMATICFILTEROUT + wildcards.sample +'.vcf')
+    if not isinstance(config['tools']['GATK']['combineVariants']['strelka1'], Error):
+        if "Y" == config['tools']['GATK']['combineVariants']['strelka1']:
+            out.append('--variant:strelka1 ' + STRELKA1FILTEROUT + wildcards.sample +'.vcf')
+    if not isinstance(config['tools']['GATK']['combineVariants']['strelka2'], Error):
+        if "Y" == config['tools']['GATK']['combineVariants']['strelka2']:
+            out.append('--variant:strelka2 ' + STRELKA2FILTEROUT + wildcards.sample +'.vcf')
     return out
 
         
