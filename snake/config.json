@@ -20,7 +20,8 @@
             "bwaIndex": "/path/to/ucsc.hg19.fasta_bwa/ucsc.hg19.fasta",
             "soapIndex": "/path/to/soapIndex",
             "pathSnpEffDB": "/path/to/snpeffi_databases/",
-            "strelkaConfig": "/path/to/strelka_config_bwa_exome.ini",
+            "strelka1Config": "/path/to/strelka_config_bwa_exome.ini",
+            "strelka2Config": "path/to/strelka2/v2.9.2/configureStrelkaSomaticWorkflow.py.NGS_Pipe.ini",
             "contigNames": "/path/to/ucsc.hg19.contigNames",
             "pathBicSeq2Mappability": "/path/to/pathBicSeq2Mappability",
             "pathSingleChromosomes": "/path/to/pathSingleChromosomes",
@@ -327,9 +328,11 @@
                 "time": "500",
                 "scratch": "5000",
                 "specificParams": "-minN 2 -genotypeMergeOptions PRIORITIZE -priority varscan,mutect2,vardict ",
-                "mutect2": "Y",
+                "mutect2" : "Y",
                 "vardict": "Y",
-                "varscansomatic": "Y"
+                "varscansomatic": "Y",
+                "strelka1": "N",
+                "strelka2": "N"
             },
             "mutect2":{
                 "threads": 1,
@@ -356,16 +359,32 @@
             "time": "200",
             "threads": 1
         },
-        "strelka":{
+        "strelka1":{
             "call": "sh /path/to/NGS-pipe/scripts/strelka.sh ",
             "intervalPadding": "0",
-            "strelkaPerlScript": "/path/to/strelka/1.0.14/x86_64/bin/configureStrelkaWorkflow.pl ",
+            "strelka1PerlScript": "/path/to/strelka1/1.0.14/x86_64/bin/configureStrelkaWorkflow.pl ",
             "scratch": "5000",
             "mem": "10000",
             "time": "1400",
             "threads": 1
         },
-        "strelkaFilter":{
+        "strelka1Filter":{
+            "call": "sh /path/to/NGS-pipe-Develop/scripts/strelkaFilter.sh ",
+            "scratch": "5000",
+            "mem": "1000",
+            "time": "20",
+            "threads": 1
+        },
+	"strelka2":{
+            "call": "sh /path/to/NGS-pipe/scripts/strelka2.sh ",
+            "intervalPadding": "0",
+            "strelka2PythonScript": "/path/to/strelka2/v2.9.2/strelka-2.9.2.centos6_x86_64/bin/configureStrelkaSomaticWorkflow.py",
+            "scratch": "5000",
+            "mem": "10000",
+            "time": "1400",
+            "threads": 1
+        },
+	"strelka2Filter":{
             "call": "sh /path/to/NGS-pipe-Develop/scripts/strelkaFilter.sh ",
             "scratch": "5000",
             "mem": "1000",

@@ -291,55 +291,106 @@ rule varscanSomatic:
         '{config[tools][updateVCFHeader][call]} {output.vcfSnp} {input.txt} {output.vcfSnpCom}; ' +
         '{config[tools][updateVCFHeader][call]} {output.vcfIndel} {input.txt} {output.vcfIndelCom}')
         
-# call strelka, currently performed with the help of a shell script, needs to be changed soon!
+# call strelka1, currently performed with the help of a shell script, needs to be changed soon!
 # this script calls configureStrelkaWorkflow, then make on the temporary files. Then GATK is used to select only variants in the captured regions
 # from snv and indel outputs. Finally, snv and indel output are combined
-if not 'STRELKAIN' in globals():
+if not 'STRELKA1IN' in globals():
     STRELKAIN = BASERECALIBRATIONOUT
-if not 'STRELKAOUT' in globals():
+if not 'STRELKA1OUT' in globals():
     STRELKAOUT = OUTDIR + 'variants/strelka/'
-rule strelka:
+rule strelka1:
     input:
-        tumor = STRELKAIN + '{tumor}.bam',
-        tumorIdx = STRELKAIN + '{tumor}.bai',
-        normal = STRELKAIN + '{normal}.bam',
-        normalIdx = STRELKAIN + '{normal}.bai',
+        tumor = STRELKA1IN + '{tumor}.bam',
+        tumorIdx = STRELKA1IN + '{tumor}.bai',
+        normal = STRELKA1IN + '{normal}.bam',
+        normalIdx = STRELKA1IN + '{normal}.bai',
         dbSnpDB  = config['resources'][ORGANISM]['dbSNP'],
         reference  = config['resources'][ORGANISM]['reference'],
         regions = config['resources'][ORGANISM]['regions'],
-        strelkaConfig = config['resources'][ORGANISM]['strelkaConfig']
+        strelkaConfig = config['resources'][ORGANISM]['strelka1Config']
     output:
         #vcfSnp = STRELKAOUT + '{tumor}_vs_{normal}.snp.vcf',
         #vcfIndel = STRELKAOUT + '{tumor}_vs_{normal}.indel.vcf',
-        vcf = STRELKAOUT + '{tumor}_vs_{normal}.vcf'
+        vcf = STRELKA1OUT + '{tumor}_vs_{normal}.vcf'
     params:
-        lsfoutfile = STRELKAOUT + '{tumor}_vs_{normal}.vcf.lsfout.log',
-        lsferrfile = STRELKAOUT + '{tumor}_vs_{normal}.vcf.lsferr.log',
-        scratch = config['tools']['strelka']['scratch'],
-        mem = config['tools']['strelka']['mem'],
-        time = config['tools']['strelka']['time'],
-        intervalPadding = config['tools']['strelka']['intervalPadding'],
-        strelkaPerlScript = config['tools']['strelka']['strelkaPerlScript'],
-        outDir = STRELKAOUT,
+        lsfoutfile = STRELKA1OUT + '{tumor}_vs_{normal}.vcf.lsfout.log',
+        lsferrfile = STRELKA1OUT + '{tumor}_vs_{normal}.vcf.lsferr.log',
+        scratch = config['tools']['strelka1']['scratch'],
+        mem = config['tools']['strelka1']['mem'],
+        time = config['tools']['strelka1']['time'],
+        intervalPadding = config['tools']['strelka1']['intervalPadding'],
+        strelka1PerlScript = config['tools']['strelka1']['strelka1PerlScript'],
+        outDir = STRELKA1OUT,
         outputTag = '{tumor}_vs_{normal}'
     threads:
         config['tools']['strelka']['threads']
     benchmark:
-        STRELKAOUT + '{tumor}_vs_{normal}.vcf.benchmark'
+        STRELKA1OUT + '{tumor}_vs_{normal}.vcf.benchmark'
     log:
-        STRELKAOUT + '{tumor}_vs_{normal}.vcf.log'
+        STRELKA1OUT + '{tumor}_vs_{normal}.vcf.log'
     shell:
-        ('{config[tools][strelka][call]} ' +
+        ('{config[tools][strelka1][call]} ' +
         '{params.outDir} ' +
         '{input.reference} ' + 
         '{input.dbSnpDB} ' +
         '{input.regions} ' +
         '{params.intervalPadding} ' +
-        '{input.strelkaConfig} ' +
+        '{input.strelka1Config} ' +
         '{input.tumor} ' +
         '{input.normal} ' +
         '{params.outputTag} ' +
-        '{params.strelkaPerlScript} ' +
+        '{params.strelka1PerlScript} ' +
+        '\"{config[tools][GATK][call]}\"')
+
+# call strelka2, currently performed with the help of a shell script, needs to be changed soon!
+# this script calls configureStrelkaWorkflow, then make on the temporary files. Then GATK is used to select only variants in the captured regions
+# from snv and indel outputs. Finally, snv and indel output are combined
+if not 'STRELKA2IN' in globals():
+    STRELKA2IN = BASERECALIBRATIONOUT
+if not 'STRELKA2OUT' in globals():
+    STRELKA2OUT = OUTDIR + 'variants/strelka2/'
+rule strelka2:
+    input:
+        tumor = STRELKA2IN + '{tumor}.bam',
+        tumorIdx = STRELKA2IN + '{tumor}.bai',
+        normal = STRELKA2IN + '{normal}.bam',
+        normalIdx = STRELKA2IN + '{normal}.bai',
+        dbSnpDB  = config['resources'][ORGANISM]['dbSNP'],
+        reference  = config['resources'][ORGANISM]['reference'],
+        regions = config['resources'][ORGANISM]['regions'],
+        strelka2Config = config['resources'][ORGANISM]['strelka2Config']
+    output:
+        #vcfSnp = STRELKAOUT + '{tumor}_vs_{normal}.snp.vcf',
+        #vcfIndel = STRELKAOUT + '{tumor}_vs_{normal}.indel.vcf',
+        vcf = STRELKA2OUT + '{tumor}_vs_{normal}.vcf'
+    params:
+        lsfoutfile = STRELKA2OUT + '{tumor}_vs_{normal}.vcf.lsfout.log',
+        lsferrfile = STRELKA2OUT + '{tumor}_vs_{normal}.vcf.lsferr.log',
+        scratch = config['tools']['strelka2']['scratch'],
+        mem = config['tools']['strelka2']['mem'],
+        time = config['tools']['strelka2']['time'],
+        intervalPadding = config['tools']['strelka2']['intervalPadding'],
+        strelka2PythonScript = config['tools']['strelka2']['strelka2PythonScript'],
+        outDir = STRELKA2OUT,
+        outputTag = '{tumor}_vs_{normal}'
+    threads:
+        config['tools']['strelka2']['threads']
+    benchmark:
+        STRELKA2OUT + '{tumor}_vs_{normal}.vcf.benchmark'
+    log:
+        STRELKA2OUT + '{tumor}_vs_{normal}.vcf.log'
+    shell:
+        ('{config[tools][strelka2][call]} ' +
+        '{params.outDir} ' +
+        '{input.reference} ' +
+        '{input.dbSnpDB} ' +
+        '{input.regions} ' +
+        '{params.intervalPadding} ' +
+        '{input.strelka2Config} ' +
+        '{input.tumor} ' +
+        '{input.normal} ' +
+        '{params.outputTag} ' +
+        '{params.strelka2PythonScript} ' +
         '\"{config[tools][GATK][call]}\"')
 
 # call somatic sniper
