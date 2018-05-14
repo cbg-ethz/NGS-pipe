@@ -267,12 +267,12 @@ def getSamplesFromExperimentId(wildcards):
                 sampleType = lineSplit[2]
                 tpoint = lineSplit[3]
                 if config['tools']['GATK']['realign']['realignFilesFromExperimentTogether'] == 'Y':
+                    if sample in expMap.keys():
+                        raise ValueError(sample = " is not uniq in the sample mapping file.")
                     if exp not in expMap.keys():
                         expMap[exp] = []
                     expMap[exp].append(sample)
                 elif config['tools']['GATK']['realign']['realignFilesFromExperimentTogether'] == "N":
-                    if sample in expMap.keys():
-                        raise ValueError(sample = " is not uniq in the sample mapping file.")
                     expMap[sample] = []
                     expMap[sample].append(sample)
                 else:
