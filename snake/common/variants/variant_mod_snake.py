@@ -259,23 +259,24 @@ if not 'MUTECT1FILTEROUT' in globals():
 ruleorder: filterMutect1Reject > mutect1
 rule filterMutect1Reject:
     input:
-        vcf = MUTECT1FILTERIN + '{sample}.annotated.vcf',
-        txt = MUTECT1FILTERIN + '{sample}.txt'
+        vcf = MUTECT1FILTERIN + '{sample}.vcf',
+        #txt = MUTECT1FILTERIN + '{sample}.txt'
     output:
-        vcf = MUTECT1FILTEROUT + '{sample}.annotated.pass.vcf',
-        txt = MUTECT1FILTEROUT + '{sample}.pass.txt'
+        vcf = MUTECT1FILTEROUT + '{sample}.pass.vcf',
+        #txt = MUTECT1FILTEROUT + '{sample}.pass.txt'
     params:
-        lsfoutfile = MUTECT1FILTEROUT + '{sample}.annotated.pass.vcf.lsfout.log',
-        lsferrfile = MUTECT1FILTEROUT + '{sample}.annotated.pass.vcf.lsferr.log',
+        lsfoutfile = MUTECT1FILTEROUT + '{sample}.pass.vcf.lsfout.log',
+        lsferrfile = MUTECT1FILTEROUT + '{sample}.pass.vcf.lsferr.log',
         scratch = config['tools']['simpleMutect1Filter']['scratch'],
         mem = config['tools']['simpleMutect1Filter']['mem'],
         time = config['tools']['simpleMutect1Filter']['time']
     threads:
         config['tools']['simpleMutect1Filter']['threads']
     benchmark:
-        MUTECT1FILTEROUT + '{sample}.annotated.pass.vcf.benchmark'
+        MUTECT1FILTEROUT + '{sample}.pass.vcf.benchmark'
     shell:
-        '{config[tools][simpleMutect1Filter][call]} {input.vcf} {input.txt} {output.vcf} {output.txt}'
+        'grep -v \'REJECT\' {input.vcf} > {output.vcf}'
+#{config[tools][simpleMutect1Filter][call]} {input.vcf} {input.txt} {output.vcf} {output.txt}'
         
 # This rule filters rejected lines from the strelka result
 if not 'STRELKAFILTERIN' in globals():
@@ -285,19 +286,19 @@ if not 'STRELKAFILTEROUT' in globals():
 ruleorder: filterStrelka > strelka
 rule filterStrelka:
     input:
-        vcf = STRELKAFILTERIN + '{sample}.annotated.vcf'
+        vcf = STRELKAFILTERIN + '{sample}.vcf'
     output:
-        vcf = STRELKAFILTEROUT + '{sample}.annotated.pass.vcf'
+        vcf = STRELKAFILTEROUT + '{sample}.pass.vcf'
     params:
-        lsfoutfile = STRELKAFILTEROUT + '{sample}.annotated.pass.vcf.lsfout.log',
-        lsferrfile = STRELKAFILTEROUT + '{sample}.annotated.pass.vcf.lsferr.log',
+        lsfoutfile = STRELKAFILTEROUT + '{sample}.pass.vcf.lsfout.log',
+        lsferrfile = STRELKAFILTEROUT + '{sample}.pass.vcf.lsferr.log',
         scratch = config['tools']['strelkaFilter']['scratch'],
         mem = config['tools']['strelkaFilter']['mem'],
         time = config['tools']['strelkaFilter']['time']
     threads:
         config['tools']['strelkaFilter']['threads']
     benchmark:
-        STRELKAFILTEROUT + '{sample}.annotated.pass.vcf.benchmark'
+        STRELKAFILTEROUT + '{sample}.pass.vcf.benchmark'
     shell:
         '{config[tools][strelkaFilter][call]} {input.vcf} {output.vcf}'
         
@@ -309,19 +310,19 @@ if not 'STRELKA2FILTEROUT' in globals():
 ruleorder: filterStrelka2 > strelka2
 rule filterStrelka2:
     input:
-        vcf = STRELKA2FILTERIN + '{sample}.annotated.vcf'
+        vcf = STRELKA2FILTERIN + '{sample}.vcf'
     output:
-        vcf = STRELKA2FILTEROUT + '{sample}.annotated.pass.vcf'
+        vcf = STRELKA2FILTEROUT + '{sample}.pass.vcf'
     params:
-        lsfoutfile = STRELKA2FILTEROUT + '{sample}.annotated.pass.vcf.lsfout.log',
-        lsferrfile = STRELKA2FILTEROUT + '{sample}.annotated.pass.vcf.lsferr.log',
+        lsfoutfile = STRELKA2FILTEROUT + '{sample}.pass.vcf.lsfout.log',
+        lsferrfile = STRELKA2FILTEROUT + '{sample}.pass.vcf.lsferr.log',
         scratch = config['tools']['strelka2Filter']['scratch'],
         mem = config['tools']['strelka2Filter']['mem'],
         time = config['tools']['strelka2Filter']['time']
     threads:
         config['tools']['strelka2Filter']['threads']
     benchmark:
-        STRELKA2FILTEROUT + '{sample}.annotated.pass.vcf.benchmark'
+        STRELKA2FILTEROUT + '{sample}.pass.vcf.benchmark'
     shell:
         '{config[tools][strelka2Filter][call]} {input.vcf} {output.vcf}'
 
@@ -334,7 +335,7 @@ rule filterVarScanSomatic:
     input:
         vcf = VARSCANSOMATICFILTERIN + '{sample}.vcf'
     output:
-        vcf = VARSCANSOMATICFILTEROUT + '{sample}.vcf'
+        vcf = VARSCANSOMATICFILTEROUT + '{sample}.pass.vcf'
     params:
         lsfoutfile = VARSCANSOMATICFILTEROUT + '{sample}.vcf.lsfout.log',
         lsferrfile = VARSCANSOMATICFILTEROUT + '{sample}.vcf.lsferr.log',
