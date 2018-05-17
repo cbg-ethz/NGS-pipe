@@ -405,7 +405,7 @@ def getVcfsForGATKVariantCombine(wildcards):
             out.append(VARSCANSOMATICFILTEROUT + wildcards.sample +'.vcf')
     if not isinstance(config['tools']['GATK']['combineVariants']['strelka1'], Error):
         if "Y" == config['tools']['GATK']['combineVariants']['strelka1']:
-            out.append(STRELKA1FILTEROUT + wildcards.sample +'.vcf')
+            out.append(STRELKAFILTEROUT + wildcards.sample +'.vcf')
     if not isinstance(config['tools']['GATK']['combineVariants']['strelka2'], Error):
         if "Y" == config['tools']['GATK']['combineVariants']['strelka2']:
             out.append(STRELKA2FILTEROUT + wildcards.sample +'.vcf')
@@ -427,7 +427,7 @@ def getVcfStringForGATKVariantCombine(wildcards):
             out.append('--variant:varscan ' + VARSCANSOMATICFILTEROUT + wildcards.sample +'.vcf')
     if not isinstance(config['tools']['GATK']['combineVariants']['strelka1'], Error):
         if "Y" == config['tools']['GATK']['combineVariants']['strelka1']:
-            out.append('--variant:strelka1 ' + STRELKA1FILTEROUT + wildcards.sample +'.vcf')
+            out.append('--variant:strelka1 ' + STRELKAFILTEROUT + wildcards.sample +'.vcf')
     if not isinstance(config['tools']['GATK']['combineVariants']['strelka2'], Error):
         if "Y" == config['tools']['GATK']['combineVariants']['strelka2']:
             out.append('--variant:strelka2 ' + STRELKA2FILTEROUT + wildcards.sample +'.vcf')
