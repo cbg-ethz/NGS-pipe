@@ -424,7 +424,7 @@ def getVcfStringForGATKVariantCombine(wildcards):
             out.append('--variant:vardict ' + VARDICTFILTEROUT + wildcards.sample +'.vcf')
     if not isinstance(config['tools']['GATK']['combineVariants']['varscansomatic'], Error):
         if "Y" == config['tools']['GATK']['combineVariants']['varscansomatic']:
-            out.append('--variant:varscan ' + VARSCANSOMATICFILTEROUT + wildcards.sample +'.vcf')
+            out.append('--variant:varscansomatic ' + VARSCANSOMATICFILTEROUT + wildcards.sample +'.vcf')
     if not isinstance(config['tools']['GATK']['combineVariants']['strelka1'], Error):
         if "Y" == config['tools']['GATK']['combineVariants']['strelka1']:
             out.append('--variant:strelka1 ' + STRELKAFILTEROUT + wildcards.sample +'.vcf')
