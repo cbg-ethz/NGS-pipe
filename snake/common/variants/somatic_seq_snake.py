@@ -9,6 +9,8 @@ callerNames = {'varscan_somatic':'VarScan2', 'jointSNVMix2_075': 'JointSNVMix2',
 def getModifyMethod(wildcards):
     return callerNames[wildcards.caller]
 
+if not 'SOMATICSEQOUT' in globals():
+    SOMATICSEQOUT = OUTDIR + 'variants/somaticseq/'
 
 rule jsm2vcf:
     input:
