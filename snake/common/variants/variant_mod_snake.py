@@ -201,7 +201,8 @@ rule snpSift_clinVar_annotation:
         lsferrfile = '{sample}.clinVar.vcf.lsferr.log',
         scratch = config['tools']['snpSift']['scratch'],
         mem = config['tools']['snpSift']['mem'],
-        time = config['tools']['snpSift']['time']
+        time = config['tools']['snpSift']['time'],
+        params = config['tools']['snpSift']['params']
     threads:
         config['tools']['snpSift']['threads']
     benchmark:
