@@ -224,6 +224,12 @@
                 "assume_sorted": "false",
                 "params": "MAX_RECORDS_IN_RAM=500000"
             },
+            "cleanSam":{
+                "mem": "12000",
+                "time": "1400",
+                "scratch": "12000",
+                "threads": 1
+            },
             "updateVCFSequenceDictionary":{
                 "mem": "12000",
                 "time": "1400",

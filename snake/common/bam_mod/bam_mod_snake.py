@@ -73,6 +73,32 @@ rule picards_fix_mate_pair_and_sort:
         'TMP_DIR={TMPDIR} ' +
         '2> {log}')
 
+# This rule cleans a bam file: soft-clipping beyond-end-of-reference alignments and setting MAPQ to 0 for unmapped read
+if not 'CLEANBAM_IN' in globals():
+    CLEANBAM_IN = "."
+if not 'CLEANBAM_OUT' in globals():
+    CLEANBAM_OUT = OUTDIR + 'cleanedBam/'
+
+rule picards_cleanSam:
+    input:
+        bam= CLEANBAM_IN + '{sample}.bam'
+    output:
+        bam=temp(CLEANBAM_OUT + '{sample}.bam')
+    params:
+        lsfoutfile = CLEANBAM_OUT + '{sample}.bam.lsfout.log',
+        lsferrfile = CLEANBAM_OUT + '{sample}.bam.lsferr.log',
+        scratch = config['tools']['picard']['cleanSam']['scratch'],
+        mem = config['tools']['picard']['cleanSam']['mem'],
+        time = config['tools']['picard']['cleanSam']['time']
+    benchmark:
+        CLEANBAM_OUT + '{sample}.bam.benchmark'
+    threads:
+        config['tools']['picard']['fixMateInformation']['threads']
+    shell:
+        ('{config[tools][picard][call]} CleanSam ' +
+        'INPUT={input.bam} ' +
+        'OUTPUT={output.bam}')
+
 # This functiom creates a list of BAM files created by the read mapper
 def getAlignerBams():
     out = []
