@@ -201,7 +201,8 @@ rule snpSift_clinVar_annotation:
         lsferrfile = '{sample}.clinVar.vcf.lsferr.log',
         scratch = config['tools']['snpSift']['scratch'],
         mem = config['tools']['snpSift']['mem'],
-        time = config['tools']['snpSift']['time']
+        time = config['tools']['snpSift']['time'],
+        params = config['tools']['snpSift']['params']
     threads:
         config['tools']['snpSift']['threads']
     benchmark:
@@ -236,10 +237,10 @@ rule snpSift_dbNSFP_annotation:
         vcf = '{sample}.vcf',
         dbNSFPDB  = config['resources'][ORGANISM]['dbnsfp']
     output:
-        vcf = '{sample}.annotated.vcf'
+        vcf = '{sample}.dbnsfp.vcf'
     params:
-        lsfoutfile = '{sample}.annotated.vcf.lsfout.log',
-        lsferrfile = '{sample}.annotated.vcf.lsferr.log',
+        lsfoutfile = '{sample}.dbnsfp.vcf.lsfout.log',
+        lsferrfile = '{sample}.dbnsfp.vcf.lsferr.log',
         scratch = config['tools']['snpSift']['scratch'],
         mem = config['tools']['snpSift']['mem'],
         time = config['tools']['snpSift']['time'],
@@ -247,7 +248,7 @@ rule snpSift_dbNSFP_annotation:
     threads:
         config['tools']['snpSift']['threads']
     benchmark:
-        '{sample}.annotated.vcf.benchmark'
+        '{sample}.dbnsfp.vcf.benchmark'
     shell:
         '{config[tools][snpSift][call]} dbnsfp {params.params} -db {input.dbNSFPDB} {input.vcf} > {output.vcf}'
         
