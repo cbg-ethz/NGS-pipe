@@ -253,6 +253,8 @@ rule mutect1:
         '--input_file:normal {input.normal} ' +
         '{params.dbs} ' +
         '--intervals {input.regions} ' +
+        '--tumor_sample_name {params.tumorName} ' +
+        '--normal_sample_name {params.normalName} ' +
         '--out {output.out} ' +
         '--vcf {output.vcf}')
 # call VarScan somatic
