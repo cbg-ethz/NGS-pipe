@@ -38,15 +38,15 @@ rule getBamHeader:
     output:
         txt = CREATEREFERENCEHEADERIN + '{tumor}.header.txt'
     params:
-        lsfoutfile = CREATEREFERENCEHEADERIN + '{tumor}.getBamHeader.lsfout.log',
-        lsferrfile = CREATEREFERENCEHEADERIN + '{tumor}.getBamHeader.lsferr.log',
+        lsfoutfile = CREATEREFERENCEHEADERIN + '{tumor}.header.lsfout.log',
+        lsferrfile = CREATEREFERENCEHEADERIN + '{tumor}.header.lsferr.log',
         scratch = config['tools']['samtools']['view']['scratch'],
         mem = config['tools']['samtools']['view']['mem'],
         time = config['tools']['samtools']['view']['time']
     threads:
         config['tools']['samtools']['view']['threads']
     benchmark:
-        CREATEREFERENCEHEADERIN + '{tumor}.getBamHeader.benchmark'
+        CREATEREFERENCEHEADERIN + '{tumor}.header.benchmark'
     shell:
         '{config[tools][samtools][call]} view -H -o {output.txt} {input.bam}'
 
@@ -58,15 +58,15 @@ rule createReferenceHeaderFile:
         #txt = CREATEREFERENCEHEADEROUT + 'referenceNames_forVCFheaderUpdate.txt'
         txt = CREATEREFERENCEHEADEROUT + '{tumor}_vs_{normal}.referenceNames_forVCFheaderUpdate.txt'
     params:
-        lsfoutfile = CREATEREFERENCEHEADEROUT + '{tumor}_vs_{normal}.createReferenceHeaderFile.lsfout.log',
-        lsferrfile = CREATEREFERENCEHEADEROUT + '{tumor}_vs_{normal}.createReferenceHeaderFile.lsferr.log',
+        lsfoutfile = CREATEREFERENCEHEADEROUT + '{tumor}_vs_{normal}.referenceNames_forVCFheaderUpdate.lsfout.log',
+        lsferrfile = CREATEREFERENCEHEADEROUT + '{tumor}_vs_{normal}.referenceNames_forVCFheaderUpdate.lsferr.log',
         scratch = config['tools']['createReferenceHeaderFile']['scratch'],
         mem = config['tools']['createReferenceHeaderFile']['mem'],
         time = config['tools']['createReferenceHeaderFile']['time']
     threads:
         config['tools']['createReferenceHeaderFile']['threads']
     benchmark:
-        CREATEREFERENCEHEADEROUT + '{tumor}_vs_{normal}.createReferenceHeaderFile.benchmark'
+        CREATEREFERENCEHEADEROUT + '{tumor}_vs_{normal}.referenceNames_forVCFheaderUpdate.benchmark'
     shell:
         '{config[tools][createReferenceHeaderFile][call]} {input.samHeader} {output.txt}'
      
