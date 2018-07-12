@@ -1,7 +1,7 @@
 # Freebayes calls a variant multiple times, when a bed file contains overlapping regions.
 # This rule uses bedtools merge to flatten a bedfile.
 
-rule flatten_bedfile_freebayes:
+rule flattenBedfileFreebayes:
     input:
         regions = config['resources'][ORGANISM]['regions']
     output:
