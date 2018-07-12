@@ -1,3 +1,70 @@
+# Freebayes calls a variant multiple times, when a bed file contains overlapping regions.
+# This rule uses bedtools merge to flatten a bedfile.
+
+rule flatten_bedfile_freebayes:
+    input:
+        regions = config['resources'][ORGANISM]['regions']
+    output:
+        flat_bed = FREEBAYESOUT + 'regions.bed'
+    params:
+        lsfoutfile = FREEBAYESOUT + 'regions.lsfout.log',
+        lsferrfile = FREEBAYESOUT + 'regions.lsferr.log',
+        scratch = config['tools']['bedtools']['merge']['scratch'],
+        mem = config['tools']['bedtools']['merge']['mem'],
+        time = config['tools']['bedtools']['merge']['time']
+    threads:
+        int(config['tools']['bedtools']['merge']['threads'])
+    shell:
+        ('{config[tools][bedtools][merge][call]} ' +
+        '-i {input.regions} ' +
+        '> {output.flat_bed}')
+
+def getFreebayesFiles():
+    names = ''
+    for w in SAMPLENAMES:
+        names = names + '-b ' + FREEBAYESIN + '/' + w + '.bam '
+    return names
+
+if not 'FREEBAYESIN' in globals():
+    FREEBAYESIN = BASERECALIBRATIONOUT
+if not 'FREEBAYESOUT' in globals():
+    FREEBAYESOUT = OUTDIR + 'variants/freebayes/raw/'
+
+# Call Freebayes:
+rule freebayes:
+    input:
+        bam = expand(FREEBAYESIN + '{sample}.bam', sample = SAMPLENAMES),
+        bai = expand(FREEBAYESIN + '{sample}.bai', sample = SAMPLENAMES),
+        reference = config['resources'][ORGANISM]['reference'],
+        regions_flat = FREEBAYESOUT + 'regions.bed'
+    output:
+        vcf = FREEBAYESOUT + 'all.vcf',
+        suc = FREEBAYESOUT + 'freebayes.complete.txt'
+    priority: 25
+    params:
+        lsfoutfile = FREEBAYESOUT + 'all.lsfout.log',
+        lsferrfile = FREEBAYESOUT + 'all.lsferr.log',
+        input = getFreebayesFiles(),
+        params = config['tools']['freebayes']['params'],
+        scratch = config['tools']['freebayes']['scratch'],
+        mem = config['tools']['freebayes']['mem'],
+        time = config['tools']['freebayes']['time']
+    threads:
+        int(config['tools']['freebayes']['threads'])
+    benchmark:
+        FREEBAYESOUT + 'all.benchmark'
+    log:
+        FREEBAYESOUT + 'all.log'
+    shell:
+        ('{config[tools][freebayes][call]} ' +
+        '-f {input.reference} ' +
+        '{params.params} ' +
+        '-t {input.regions_flat} ' +
+        '{params.input} ' +
+        '2>{log} > {output.vcf} ' +
+        '&& touch {output.suc}')
+
+        
 if not 'VARSCANSNPIN' in globals():
     VARSCANSNPIN = MPILEUPOUT
 if not 'VARSCANSNPOUT' in globals():
