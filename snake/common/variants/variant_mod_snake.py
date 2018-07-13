@@ -338,8 +338,8 @@ rule filterVarScanSomatic:
     output:
         vcf = VARSCANSOMATICFILTEROUT + '{sample}.pass.vcf'
     params:
-        lsfoutfile = VARSCANSOMATICFILTEROUT + '{sample}.vcf.lsfout.log',
-        lsferrfile = VARSCANSOMATICFILTEROUT + '{sample}.vcf.lsferr.log',
+        lsfoutfile = VARSCANSOMATICFILTEROUT + '{sample}.pass.vcf.lsfout.log',
+        lsferrfile = VARSCANSOMATICFILTEROUT + '{sample}.pass.vcf.lsferr.log',
         scratch = config['tools']['varscanSomaticFilter']['scratch'],
         mem = config['tools']['varscanSomaticFilter']['mem'],
         time = config['tools']['varscanSomaticFilter']['time'],
@@ -354,7 +354,7 @@ rule filterVarScanSomatic:
     threads:
         config['tools']['varscanSomaticFilter']['threads']
     benchmark:
-        VARSCANSOMATICFILTEROUT + '{sample}.vcf.benchmark'
+        VARSCANSOMATICFILTEROUT + '{sample}.pass.vcf.benchmark'
     shell:
         ('{config[tools][varscanSomaticFilter][call]} {input.vcf} {output.vcf} ' +
         '{params.minVarSupport} ' +
@@ -366,6 +366,31 @@ rule filterVarScanSomatic:
         '{params.filterSilent} ' +
         '{params.lohThreshold}')
 
+# This rule filters annotated vcf files produced by Freebayes
+if not 'FREEBAYESFILTERIN' in globals():
+    FREEBAYESFILTERIN = FREEBAYESOUT
+if not 'FREEBAYESFILTEROUT' in globals():
+    FREEBAYESFILTEROUT = OUTDIR + 'variants/freebayes/filtered/'
+rule filterFreebayes:
+    input:
+        vcf = FREEBAYESFILTERIN + 'all.vcf'
+    output:
+        vcf = FREEBAYESFILTEROUT + '{sample}.pass.vcf'
+    params:
+        lsfoutfile = FREEBAYESFILTEROUT + '{sample}.pass.vcf.lsfout.log',
+        lsferrfile = FREEBAYESFILTEROUT + '{sample}.pass.vcf.lsferr.log',
+        scratch = config['tools']['freebayesFilter']['scratch'],
+        mem = config['tools']['freebayesFilter']['mem'],
+        time = config['tools']['freebayesFilter']['time'],
+        params = config['tools']['freebayesFilter']['params'],
+        out_prefix= FREEBAYESFILTEROUT + '{sample}',
+        out_complete= FREEBAYESFILTEROUT + '{sample}.recode.vcf'
+    threads:
+        config['tools']['freebayesFilter']['threads']
+    benchmark:
+        FREEBAYESFILTEROUT + '{sample}.pass.vcf.benchmark'
+    shell:
+        ('{config[tools][freebayesFilter][call]} --vcf {input.vcf} --out {params.out_prefix} {params.params} ; mv {params.out_complete} {output.vcf} ' )
 # this rule fixes the header of somaticSniper, varScan2, freebayes, strelka... 
 # NORMAL and TUMOR are replaced with the correct sample names 
 # -> this is done immediately after creating the vcfs
@@ -410,6 +435,9 @@ def getVcfsForGATKVariantCombine(wildcards):
     if not isinstance(config['tools']['GATK']['combineVariants']['strelka2'], Error):
         if "Y" == config['tools']['GATK']['combineVariants']['strelka2']:
             out.append(STRELKA2FILTEROUT + wildcards.sample +'.vcf')
+    if not isinstance(config['tools']['GATK']['combineVariants']['freebayes'], Error):
+        if "Y" == config['tools']['GATK']['combineVariants']['freebayes']:
+            out.append(FREEBAYESFILTEROUT + wildcards.sample +'.vcf') 
     return out
 
 def getVcfStringForGATKVariantCombine(wildcards):
@@ -432,6 +460,9 @@ def getVcfStringForGATKVariantCombine(wildcards):
     if not isinstance(config['tools']['GATK']['combineVariants']['strelka2'], Error):
         if "Y" == config['tools']['GATK']['combineVariants']['strelka2']:
             out.append('--variant:strelka2 ' + STRELKA2FILTEROUT + wildcards.sample +'.vcf')
+    if not isinstance(config['tools']['GATK']['combineVariants']['freebayes'], Error):
+        if "Y" == config['tools']['GATK']['combineVariants']['freebayes']:
+            out.append('--variant:freebayes ' + FREEBAYESFILTEROUT + wildcards.sample +'.vcf')
     return out
 
         
