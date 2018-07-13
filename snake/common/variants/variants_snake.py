@@ -14,8 +14,8 @@ rule mergeRegionsInBed:
     output:
         flat_bed =  config['resources'][ORGANISM]['regions'] + '_mergedRegions.bed'
     params:
-        lsfoutfile = MERGEREGIONSINBEDOUT + 'regions.lsfout.log',
-        lsferrfile = MERGEREGIONSINBEDOUT + 'regions.lsferr.log',
+        lsfoutfile = config['resources'][ORGANISM]['regions'] + '_mergedRegions.lsfout.log',
+        lsferrfile = config['resources'][ORGANISM]['regions'] + '_mergedRegions.lsferr.log',
         scratch = config['tools']['bedtools']['merge']['scratch'],
         mem = config['tools']['bedtools']['merge']['mem'],
         time = config['tools']['bedtools']['merge']['time']
