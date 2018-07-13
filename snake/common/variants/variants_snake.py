@@ -5,8 +5,6 @@ if not 'FREEBAYESIN' in globals():
     FREEBAYESIN = BASERECALIBRATIONOUT
 if not 'FREEBAYESOUT' in globals():
     FREEBAYESOUT = OUTDIR + 'variants/freebayes/raw/'
-if not 'MERGEREGIONSINBEDOUT' in globals():
-    MERGEREGIONSINBEDOUT = FREEBAYESOUT
 
 rule mergeRegionsInBed:
     input:
