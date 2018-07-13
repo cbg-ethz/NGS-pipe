@@ -1,14 +1,21 @@
 # Freebayes calls a variant multiple times, when a bed file contains overlapping regions.
 # This rule uses bedtools merge to flatten a bedfile.
 
+if not 'FREEBAYESIN' in globals():
+    FREEBAYESIN = BASERECALIBRATIONOUT
+if not 'FREEBAYESOUT' in globals():
+    FREEBAYESOUT = OUTDIR + 'variants/freebayes/raw/'
+if not 'MERGEREGIONSINBEDOUT' in globals():
+    MERGEREGIONSINBEDOUT = FREEBAYESOUT
+
 rule mergeRegionsInBed:
     input:
         regions = config['resources'][ORGANISM]['regions']
     output:
-        flat_bed = FREEBAYESOUT + '_mergedRegions.bed'
+        flat_bed =  config['resources'][ORGANISM]['regions'] + '_mergedRegions.bed'
     params:
-        lsfoutfile = FREEBAYESOUT + 'regions.lsfout.log',
-        lsferrfile = FREEBAYESOUT + 'regions.lsferr.log',
+        lsfoutfile = MERGEREGIONSINBEDOUT + 'regions.lsfout.log',
+        lsferrfile = MERGEREGIONSINBEDOUT + 'regions.lsferr.log',
         scratch = config['tools']['bedtools']['merge']['scratch'],
         mem = config['tools']['bedtools']['merge']['mem'],
         time = config['tools']['bedtools']['merge']['time']
@@ -25,18 +32,13 @@ def getFreebayesFiles():
         names = names + '-b ' + FREEBAYESIN + '/' + w + '.bam '
     return names
 
-if not 'FREEBAYESIN' in globals():
-    FREEBAYESIN = BASERECALIBRATIONOUT
-if not 'FREEBAYESOUT' in globals():
-    FREEBAYESOUT = OUTDIR + 'variants/freebayes/raw/'
-
 # Call Freebayes:
 rule freebayes:
     input:
         bam = expand(FREEBAYESIN + '{sample}.bam', sample = SAMPLENAMES),
         bai = expand(FREEBAYESIN + '{sample}.bai', sample = SAMPLENAMES),
         reference = config['resources'][ORGANISM]['reference'],
-        regions_flat = FREEBAYESOUT + '_mergedRegions.bed'
+        regions_flat =  config['resources'][ORGANISM]['regions'] + '_mergedRegions.bed'
     output:
         vcf = FREEBAYESOUT + 'all.vcf',
         suc = FREEBAYESOUT + 'freebayes.complete.txt'
