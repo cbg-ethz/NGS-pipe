@@ -14,7 +14,7 @@ rule trimmomatic_paired:
         forwardUP = temp(TRIMMOMATICOUT + '{sample}/PAIREDEND/ORPHAN/{fastq}_R1.fastq.gz'),
         reverseP = temp(TRIMMOMATICOUT + '{sample}/PAIREDEND/{fastq}_R2.fastq.gz'),
         reverseUP = temp(TRIMMOMATICOUT + '{sample}/PAIREDEND/ORPHAN/{fastq}_R2.fastq.gz'),
-        trimlog = temp(TRIMMOMATICOUT + '{sample}/PAIREDEND/{fastq}_clipTrim.log.gz')
+        trimlog = TRIMMOMATICOUT + '{sample}/PAIREDEND/{fastq}_clipTrim.log.gz'
     params:
         trimlog = temp(TRIMMOMATICOUT + '{sample}/PAIREDEND/{fastq}_clipTrim.log'),
         slidingwindow = config['tools']['trimmomatic']['paired']['slidingwindow'],
@@ -27,17 +27,17 @@ rule trimmomatic_paired:
         minlen = config['tools']['trimmomatic']['paired']['minlen'],
         min_adapt_len = config['tools']['trimmomatic']['paired']['min_adapt_len'],
         keep_both = config['tools']['trimmomatic']['paired']['keep_both'],
-        lsfoutfile = TRIMMOMATICOUT + '/{sample}/PAIREDEND/{fastq}.fastq.lsfout.log',
-        lsferrfile = TRIMMOMATICOUT + '/{sample}/PAIREDEND/{fastq}.fastq.lsferr.log',
+        lsfoutfile = TRIMMOMATICOUT + '{sample}/PAIREDEND/{fastq}.fastq.lsfout.log',
+        lsferrfile = TRIMMOMATICOUT + '{sample}/PAIREDEND/{fastq}.fastq.lsferr.log',
         scratch = config['tools']['trimmomatic']['scratch'],
         mem = config['tools']['trimmomatic']['mem'],
         time = config['tools']['trimmomatic']['time']
     benchmark:
-        TRIMMOMATICOUT + '/{sample}/PAIREDEND/{fastq}.fastq.gz.benchmark'
+        TRIMMOMATICOUT + '{sample}/PAIREDEND/{fastq}.fastq.gz.benchmark'
     threads:
         config['tools']['trimmomatic']['paired']['threads']
     log:
-        stdoutlog = TRIMMOMATICOUT + '/{sample}/PAIREDEND/{fastq}.fastq.gz.stdout.log'
+        stdoutlog = TRIMMOMATICOUT + '{sample}/PAIREDEND/{fastq}.fastq.gz.stdout.log'
     shell:
         ('{config[tools][trimmomatic][call]} ' +
         '{params.mode} ' +
