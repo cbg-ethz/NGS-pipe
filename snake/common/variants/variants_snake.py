@@ -262,16 +262,19 @@ if not 'VARSCANSOMATICIN' in globals():
     VARSCANSOMATICIN = MPILEUPOUT
 if not 'VARSCANSOMATICOUT' in globals():
     VARSCANSOMATICOUT = OUTDIR + 'variants/varscan_somatic/raw/'
+
+if not 'CREATEREFERENCEHEADERIN' in globals():
+    CREATEREFERENCEHEADERIN = MERGEBAMSOUT
+if not 'CREATEREFERENCEHEADEROUT' in globals():
+    CREATEREFERENCEHEADEROUT = OUTDIR + 'variants/'
+
 rule varscanSomatic:
     input:
         tumor = VARSCANSOMATICIN + '{tumor}.mpileup',
         normal = VARSCANSOMATICIN + '{normal}.mpileup',
-        txt = CREATEREFERENCEHEADEROUT + '{tumor}_vs_{normal}.referenceNames_forVCFheaderUpdate.txt'
     output:
         vcfSnp = VARSCANSOMATICOUT + '{tumor}_vs_{normal}.snp.vcf',
         vcfIndel = VARSCANSOMATICOUT + '{tumor}_vs_{normal}.indel.vcf',
-        vcfSnpCom = VARSCANUPDATEHEADEROUT + '{tumor}_vs_{normal}.snp.vcf',
-        vcfIndelCom = VARSCANUPDATEHEADEROUT + '{tumor}_vs_{normal}.indel.vcf'
     params:
         lsfoutfile = VARSCANSOMATICOUT + '{tumor}_vs_{normal}.lsfout.log',
         lsferrfile = VARSCANSOMATICOUT + '{tumor}_vs_{normal}.lsferr.log',
@@ -289,9 +292,7 @@ rule varscanSomatic:
     shell:
         ('{config[tools][varscan][call]} somatic {input.normal} {input.tumor} {params.outputTag} ' +
         '--output-vcf 1 ' +
-        '{config[tools][varscan][somatic][params]}; ' +
-        '{config[tools][updateVCFHeader][call]} {output.vcfSnp} {input.txt} {output.vcfSnpCom}; ' +
-        '{config[tools][updateVCFHeader][call]} {output.vcfIndel} {input.txt} {output.vcfIndelCom}')
+        '{config[tools][varscan][somatic][params]}; ')
         
 # call strelka1, currently performed with the help of a shell script, needs to be changed soon!
 # this script calls configureStrelkaWorkflow, then make on the temporary files. Then GATK is used to select only variants in the captured regions

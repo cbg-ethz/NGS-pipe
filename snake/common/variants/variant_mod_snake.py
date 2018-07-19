@@ -1,14 +1,13 @@
-
 # This rule uses a python script to fill the header of VarScan and freebayes vcf files
 if not 'VARSCANUPDATEHEADERIN' in globals():
     VARSCANUPDATEHEADERIN = VARSCANSOMATICOUT
 if not 'VARSCANUPDATEHEADEROUT' in globals():
     VARSCANUPDATEHEADEROUT = OUTDIR + 'variants/varscan_somatic/complete_raw/'
-"""
+
 rule updateVCFHeader:
     input:
         vcf = VARSCANUPDATEHEADERIN + '{sample}.vcf',
-        reference = config['resources'][ORGANISM]['referenceNamesForVcf']
+        txt = CREATEREFERENCEHEADEROUT + '{tumor}_vs_{normal}.referenceNames_forVCFheaderUpdate.txt'
     output:
         vcf = VARSCANUPDATEHEADEROUT + '{sample}.vcf'
     params:
@@ -22,13 +21,14 @@ rule updateVCFHeader:
     benchmark:
         VARSCANUPDATEHEADEROUT + '{sample}.vcf.benchmark'
     shell:
-        '{config[tools][updateVCFHeader][call]} {input.vcf} {input.reference} {output.vcf}'
-"""
+        ('{config[tools][updateVCFHeader][call]} {output.vcfSnp} {input.txt} {output.vcfSnpCom}; ' +
+        '{config[tools][updateVCFHeader][call]} {output.vcfIndel} {input.txt} {output.vcfIndelCom}')
+
 
 # extract header of bam file
 # has been tested for bwa
 if not 'CREATEREFERENCEHEADERIN' in globals():
-    CREATEREFERENCEHEADERIN = REMOVEPCRDUBLICATESOUT
+    CREATEREFERENCEHEADERIN = MERGEBAMSOUT
 if not 'CREATEREFERENCEHEADEROUT' in globals():
     CREATEREFERENCEHEADEROUT = OUTDIR + 'variants/'
 
