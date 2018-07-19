@@ -13,7 +13,6 @@ rule qualimap_PDF:
         bam = '{sample}.bam',
         regions = config['resources'][ORGANISM]['regions'] + '_qual.bed' 
     output:
-        dir = '{sample}.bam_stats',
         file = '{sample}.bam_stats/report.pdf'
     params:
         lsfoutfile = '{sample}.bam_stats/report.pdf.lsfout.log',
@@ -21,20 +20,20 @@ rule qualimap_PDF:
         scratch = config['tools']['qualimap']['scratch'],
         mem = config['tools']['qualimap']['mem'],
         time = config['tools']['qualimap']['time'],
+        dir = '{sample}.bam_stats',
         params = config['tools']['qualimap']['params']
     benchmark:
         '{sample}.bam_stats/report.pdf.benchmark'
     threads:
         config['tools']['qualimap']['threads']
     shell:
-        'if [[ ! -n $({config[tools][samtools][call]} view {input.bam} | head -n 1) ]]; then touch {output.file}; else {config[tools][qualimap][call]} bamqc -bam {input.bam} -outdir {output.dir} -outformat PDF -os -feature-file {input.regions} --java-mem-size={config[tools][qualimap][mem]}M {params.params}; fi'
+        'if [[ ! -n $({config[tools][samtools][call]} view {input.bam} | head -n 1) ]]; then touch {output.file}; else {config[tools][qualimap][call]} bamqc -bam {input.bam} -outdir {params.dir} -outformat PDF -os -feature-file {input.regions} --java-mem-size={config[tools][qualimap][mem]}M {params.params}; fi'
 
 rule qualimap_HTML:
     input:
         bam = '{sample}.bam',
         regions = config['resources'][ORGANISM]['regions'] + '_qual.bed'
     output:
-        dir = '{sample}.bam_stats',
         file = '{sample}.bam_stats/qualimapReport.html'
     params:
         lsfoutfile = '{sample}.bam_stats/qualimapReport.html.lsfout.log',
@@ -42,13 +41,14 @@ rule qualimap_HTML:
         scratch = config['tools']['qualimap']['scratch'],
         mem = config['tools']['qualimap']['mem'],
         time = config['tools']['qualimap']['time'],
+        dir = '{sample}.bam_stats',
         params = config['tools']['qualimap']['params']
     benchmark:
         '{sample}.bam_stats/qualimapReport.html.benchmark'
     threads:
         config['tools']['qualimap']['threads']
     shell:
-        'if [[ ! -n $({config[tools][samtools][call]} view {input.bam} | head -n 1) ]]; then touch {output.file}; else {config[tools][qualimap][call]} bamqc -bam {input.bam} -outdir {output.dir} -outformat HTML -os -feature-file {input.regions} --java-mem-size={config[tools][qualimap][mem]}M {params.params}; fi'
+        'if [[ ! -n $({config[tools][samtools][call]} view {input.bam} | head -n 1) ]]; then touch {output.file}; else {config[tools][qualimap][call]} bamqc -bam {input.bam} -outdir {params.dir} -outformat HTML -os -feature-file {input.regions} --java-mem-size={config[tools][qualimap][mem]}M {params.params}; fi'
 
 rule multiqcBam:
     input:
