@@ -1,29 +1,3 @@
-# This rule uses a python script to fill the header of VarScan and freebayes vcf files
-if not 'VARSCANUPDATEHEADERIN' in globals():
-    VARSCANUPDATEHEADERIN = VARSCANSOMATICOUT
-if not 'VARSCANUPDATEHEADEROUT' in globals():
-    VARSCANUPDATEHEADEROUT = OUTDIR + 'variants/varscan_somatic/complete_raw/'
-
-rule updateVCFHeader:
-    input:
-        vcf = VARSCANUPDATEHEADERIN + '{sample}.vcf',
-        txt = CREATEREFERENCEHEADEROUT + '{tumor}_vs_{normal}.referenceNames_forVCFheaderUpdate.txt'
-    output:
-        vcf = VARSCANUPDATEHEADEROUT + '{sample}.vcf'
-    params:
-        lsfoutfile = VARSCANUPDATEHEADEROUT + '{sample}.vcf.lsfout.log',
-        lsferrfile = VARSCANUPDATEHEADEROUT + '{sample}.vcf.lsferr.log',
-        scratch = config['tools']['updateVCFHeader']['scratch'],
-        mem = config['tools']['updateVCFHeader']['mem'],
-        time = config['tools']['updateVCFHeader']['time']
-    threads:
-        config['tools']['updateVCFHeader']['threads']
-    benchmark:
-        VARSCANUPDATEHEADEROUT + '{sample}.vcf.benchmark'
-    shell:
-        ('{config[tools][updateVCFHeader][call]} {output.vcfSnp} {input.txt} {output.vcfSnpCom}; ' +
-        '{config[tools][updateVCFHeader][call]} {output.vcfIndel} {input.txt} {output.vcfIndelCom}')
-
 
 # extract header of bam file
 # has been tested for bwa
@@ -69,6 +43,32 @@ rule createReferenceHeaderFile:
         CREATEREFERENCEHEADEROUT + '{tumor}_vs_{normal}.referenceNames_forVCFheaderUpdate.benchmark'
     shell:
         '{config[tools][createReferenceHeaderFile][call]} {input.samHeader} {output.txt}'
+
+# This rule uses a python script to fill the header of VarScan and freebayes vcf files
+if not 'VARSCANUPDATEHEADERIN' in globals():
+    VARSCANUPDATEHEADERIN = VARSCANSOMATICOUT
+if not 'VARSCANUPDATEHEADEROUT' in globals():
+    VARSCANUPDATEHEADEROUT = OUTDIR + 'variants/varscan_somatic/complete_raw/'
+
+#rule updateVCFHeader:
+#    input:
+#        vcf = '{sample}.vcf',
+#        txt = CREATEREFERENCEHEADEROUT + '{tumor}_vs_{normal}.referenceNames_forVCFheaderUpdate.txt'
+#    output:
+#        vcf = '{sample}_fullHeader.vcf'
+#    params:
+#        lsfoutfile = VARSCANUPDATEHEADEROUT + '{sample}_fullHeader.vcf.lsfout.log',
+#        lsferrfile = VARSCANUPDATEHEADEROUT + '{sample}_fullHeader.vcf.lsferr.log',
+#        scratch = config['tools']['updateVCFHeader']['scratch'],
+#        mem = config['tools']['updateVCFHeader']['mem'],
+#        time = config['tools']['updateVCFHeader']['time']
+#    threads:
+#        config['tools']['updateVCFHeader']['threads']
+#    benchmark:
+#        VARSCANUPDATEHEADEROUT + '{sample}_fullHeader.vcf.benchmark'
+#    shell:
+#        ('{config[tools][updateVCFHeader][call]} {input.vcf} {input.txt} {output.vcf}')
+
      
 # This rule uses bcftools convert to compress a vcf
 rule bcftoolsConvert:
@@ -119,22 +119,22 @@ if not 'VARSCANCOMPLETEOUT' in globals():
     VARSCANCOMPLETEOUT = OUTDIR + 'variants/varscan_somatic/combined_raw/'
 rule bcftoolsConcat:
     input:
-        vcfIndel = VARSCANCOMPLETEIN + '{sample}.indel.vcf.gz',
-        vcfSnp = VARSCANCOMPLETEIN + '{sample}.snp.vcf.gz',
-        vcfIndelIndex = VARSCANCOMPLETEIN + '{sample}.indel.vcf.gz.csi',
-        vcfSnpIndex = VARSCANCOMPLETEIN + '{sample}.snp.vcf.gz.csi'
+        vcfIndel = VARSCANCOMPLETEIN + '{sample}.indel_fullHeader.vcf.gz',
+        vcfSnp = VARSCANCOMPLETEIN + '{sample}.snp_fullHeader.vcf.gz',
+        vcfIndelIndex = VARSCANCOMPLETEIN + '{sample}.indel_fullHeader.vcf.gz.csi',
+        vcfSnpIndex = VARSCANCOMPLETEIN + '{sample}.snp_fullHeader.vcf.gz.csi'
     output:
         vcf = VARSCANCOMPLETEOUT + '{sample}.vcf'
     params:
-        lsfoutfile = VARSCANCOMPLETEOUT + '{sample}.vcf.lsfout.log',
-        lsferrfile = VARSCANCOMPLETEOUT + '{sample}.vcf.lsferr.log',
+        lsfoutfile = VARSCANCOMPLETEOUT + '{sample}_fullHeader.vcf.lsfout.log',
+        lsferrfile = VARSCANCOMPLETEOUT + '{sample}_fullHeader.vcf.lsferr.log',
         scratch = config['tools']['bcftools']['scratch'],
         mem = config['tools']['bcftools']['mem'],
         time = config['tools']['bcftools']['time']
     threads:
         config['tools']['bcftools']['threads']
     benchmark:
-        VARSCANCOMPLETEOUT + '{sample}.vcf.benchmark'
+        VARSCANCOMPLETEOUT + '{sample}_fullHeader.vcf.benchmark'
     shell:
         '{config[tools][bcftools][call]} concat {input.vcfSnp} {input.vcfIndel} -a -o {output.vcf}'
 

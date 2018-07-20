@@ -263,11 +263,6 @@ if not 'VARSCANSOMATICIN' in globals():
 if not 'VARSCANSOMATICOUT' in globals():
     VARSCANSOMATICOUT = OUTDIR + 'variants/varscan_somatic/raw/'
 
-if not 'CREATEREFERENCEHEADERIN' in globals():
-    CREATEREFERENCEHEADERIN = MERGEBAMSOUT
-if not 'CREATEREFERENCEHEADEROUT' in globals():
-    CREATEREFERENCEHEADEROUT = OUTDIR + 'variants/'
-
 rule varscanSomatic:
     input:
         tumor = VARSCANSOMATICIN + '{tumor}.mpileup',
