@@ -434,6 +434,10 @@
         "freebayes":{
             "call": "",
             "threads": 1,
+            "params": "",
+            "scratch": "1000",
+            "mem": "2000",
+            "time": "200",
             "qual": "",
             "altFreq": "",
             "altMinCount": ""
@@ -720,6 +724,14 @@
 	 "bedtools": {
         "intersect": {
                 "call": "/path/to/bedtools intersect ",
+                "params": "",
+                "scratch": "1000",
+                "mem": "1000",
+                "time": "60",
+                "threads": 1
+            },
+        "merge": {
+                "call": "/path/to/bedtools merge ",
                 "params": "",
                 "scratch": "1000",
                 "mem": "1000",

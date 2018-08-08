@@ -18,7 +18,7 @@ rule mergeRegionsInBed:
         mem = config['tools']['bedtools']['merge']['mem'],
         time = config['tools']['bedtools']['merge']['time']
     threads:
-        int(config['tools']['bedtools']['merge']['threads'])
+        config['tools']['bedtools']['merge']['threads']
     shell:
         ('{config[tools][bedtools][merge][call]} ' +
         '-i {input.regions} ' +
@@ -50,7 +50,7 @@ rule freebayes:
         mem = config['tools']['freebayes']['mem'],
         time = config['tools']['freebayes']['time']
     threads:
-        int(config['tools']['freebayes']['threads'])
+        config['tools']['freebayes']['threads']
     benchmark:
         FREEBAYESOUT + 'all.benchmark'
     log:
