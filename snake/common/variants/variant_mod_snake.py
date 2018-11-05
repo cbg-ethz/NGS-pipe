@@ -9,7 +9,7 @@ if not 'CREATEREFERENCEHEADEROUT' in globals():
 def getBamForHeaderUpdate(wildcards):
     if '_vs_' in wildcards.sample:
         return CREATEREFERENCEHEADERIN + wildcards.sample.split('_vs_')[0].split('/')[-1] + '.bam'
-    CREATEREFERENCEHEADERIN + wildcards.sample.split('/')[-1] + '.bam'
+    return CREATEREFERENCEHEADERIN + wildcards.sample.split('/')[-1] + '.bam'
 
 rule getBamHeader:
     input:
