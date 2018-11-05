@@ -69,16 +69,12 @@ if not 'VARSCANSOMATICIN' in globals():
     VARSCANSOMATICIN = MPILEUPOUT
 if not 'VARSCANSOMATICOUT' in globals():
     VARSCANSOMATICOUT = OUTDIR + 'variants/varscan_somatic/raw/'
-if not 'VARSCANUPDATEHEADERIN' in globals():
-    VARSCANUPDATEHEADERIN = VARSCANSOMATICOUT
-if not 'VARSCANUPDATEHEADEROUT' in globals():
-    VARSCANUPDATEHEADEROUT = OUTDIR + 'variants/varscan_somatic/complete_raw/'
-if not 'VARSCANCOMPLETEIN' in globals():
-    VARSCANCOMPLETEIN = VARSCANUPDATEHEADEROUT
-if not 'VARSCANCOMPLETEOUT' in globals():
-    VARSCANCOMPLETEOUT = OUTDIR + 'variants/varscan_somatic/combined_raw/'
+if not 'CONCATVARSCANIN' in globals():
+    CONCATVARSCANIN = VARSCANSOMATICOUT
+if not 'CONCATVARSCANOUT' in globals():
+    CONCATVARSCANOUT = OUTDIR + 'variants/varscan_somatic/concatenated/'
 if not 'VARSCANSOMATICFILTERIN' in globals():
-    VARSCANSOMATICFILTERIN = VARSCANCOMPLETEOUT
+    VARSCANSOMATICFILTERIN = CONCATVARSCANOUT
 if not 'VARSCANSOMATICFILTEROUT' in globals():
     VARSCANSOMATICFILTEROUT = OUTDIR + 'variants/varscan_somatic/filtered/'
 if not 'BCFTOOLSIN' in globals():
