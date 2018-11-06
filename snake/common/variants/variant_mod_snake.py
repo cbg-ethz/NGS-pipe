@@ -126,15 +126,15 @@ rule bcftoolsConcat:
     output:
         vcf = CONCATVARSCANOUT + '{sample}.vcf'
     params:
-        lsfoutfile = '{sample}.concat.vcf.lsfout.log',
-        lsferrfile = '{sample}.concat.vcf.lsferr.log',
+        lsfoutfile = CONCATVARSCANOUT + '{sample}.vcf.lsfout.log',
+        lsferrfile = CONCATVARSCANOUT + '{sample}.vcf.lsferr.log',
         scratch = config['tools']['bcftools']['scratch'],
         mem = config['tools']['bcftools']['mem'],
         time = config['tools']['bcftools']['time']
     threads:
         config['tools']['bcftools']['threads']
     benchmark:
-        '{sample}.concat.vcf.benchmark'
+        CONCATVARSCANOUT + '{sample}.vcf.benchmark'
     shell:
         '{config[tools][bcftools][call]} concat {input.vcfSnp} {input.vcfIndel} -a -o {output.vcf}'
 
