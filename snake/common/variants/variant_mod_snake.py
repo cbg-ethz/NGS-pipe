@@ -113,24 +113,28 @@ rule bcftoolsIndex:
     shell:
         '{config[tools][bcftools][call]} index {params.params} {input.vcf}'
         
+if not 'CONCATVARSCANIN' in globals():
+	CONCATVARSCANIN = VARSCANSOMATICOUT
+if not 'CONCATVARSCANOUT' in globals():
+	CONCATVARSCANOUT = OUTDIR + 'variants/varscan_somatic/concatenated/'
 rule bcftoolsConcat:
     input:
-        vcfIndel = '{sample}.indel_fullHeader.vcf.gz',
-        vcfSnp = '{sample}.snp_fullHeader.vcf.gz',
-        vcfIndelIndex = '{sample}.indel_fullHeader.vcf.gz.csi',
-        vcfSnpIndex = '{sample}.snp_fullHeader.vcf.gz.csi'
+        vcfIndel = CONCATVARSCANIN + '{sample}.indel_fullHeader.vcf.gz',
+        vcfSnp = CONCATVARSCANIN + '{sample}.snp_fullHeader.vcf.gz',
+        vcfIndelIndex = CONCATVARSCANIN + '{sample}.indel_fullHeader.vcf.gz.csi',
+        vcfSnpIndex = CONCATVARSCANIN + '{sample}.snp_fullHeader.vcf.gz.csi'
     output:
-        vcf = '{sample}_complete.vcf'
+        vcf = CONCATVARSCANOUT + '{sample}.vcf'
     params:
-        lsfoutfile = '{sample}_fullHeader.vcf.lsfout.log',
-        lsferrfile = '{sample}_fullHeader.vcf.lsferr.log',
+        lsfoutfile = CONCATVARSCANOUT + '{sample}.vcf.lsfout.log',
+        lsferrfile = CONCATVARSCANOUT + '{sample}.vcf.lsferr.log',
         scratch = config['tools']['bcftools']['scratch'],
         mem = config['tools']['bcftools']['mem'],
         time = config['tools']['bcftools']['time']
     threads:
         config['tools']['bcftools']['threads']
     benchmark:
-        '{sample}_fullHeader.vcf.benchmark'
+        CONCATVARSCANOUT + '{sample}.vcf.benchmark'
     shell:
         '{config[tools][bcftools][call]} concat {input.vcfSnp} {input.vcfIndel} -a -o {output.vcf}'
 
@@ -350,12 +354,12 @@ rule filterStrelka2:
 
 # This rule filters annotated vcf files produced by VarScan2 somatic
 if not 'VARSCANSOMATICFILTERIN' in globals():
-    VARSCANSOMATICFILTERIN = VARSCANSOMATICOUT
+    VARSCANSOMATICFILTERIN = CONCATVARSCANOUT
 if not 'VARSCANSOMATICFILTEROUT' in globals():
     VARSCANSOMATICFILTEROUT = OUTDIR + 'variants/varscan_somatic/filtered/'
 rule filterVarScanSomatic:
     input:
-        vcf = VARSCANSOMATICFILTERIN + '{sample}_complete.vcf'
+        vcf = VARSCANSOMATICFILTERIN + '{sample}.vcf'
     output:
         vcf = VARSCANSOMATICFILTEROUT + '{sample}.pass.vcf'
     params:
