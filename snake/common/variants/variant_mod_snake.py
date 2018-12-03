@@ -53,7 +53,7 @@ rule createReferenceHeaderFile:
 rule updateVCFHeader:
     input:
         vcf = '{sample}.vcf',
-        txt = CREATEREFERENCEHEADEROUT + '{sample}.referenceNames_forVCFheaderUpdate.txt'
+        txt = '{sample}.referenceNames_forVCFheaderUpdate.txt'
     output:
         vcf = '{sample}_fullHeader.vcf'
     params:
