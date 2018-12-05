@@ -20,7 +20,7 @@ rule mergeRegionsInBed:
     threads:
         config['tools']['bedtools']['merge']['threads']
     shell:
-        ('{config[tools][bedtools][merge][call]} ' +
+        ('{config[tools][bedtools][call] merge } ' +
         '-i {input.regions} ' +
         '> {output.flat_bed}')
 

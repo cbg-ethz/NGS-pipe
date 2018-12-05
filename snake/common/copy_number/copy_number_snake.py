@@ -417,7 +417,7 @@ rule annotateCNVsWithBedtools:
     benchmark:
         '{sample}.annotated.benchmark'
     shell:
-        '{config[tools][bedtools][intersect][call]} intersect -a {input.inRes} -b {input.inDB} -wa -wb > {output.out}.temp1.txt ; ' +
-        '{config[tools][bedtools][intersect][call]} intersect -a {input.inRes} -b {input.inDB} -v -wa > {output.out}.temp2.txt ; ' +
+        '{config[tools][bedtools][call]} intersect -a {input.inRes} -b {input.inDB} -wa -wb > {output.out}.temp1.txt ; ' +
+        '{config[tools][bedtools][call]} intersect -a {input.inRes} -b {input.inDB} -v -wa > {output.out}.temp2.txt ; ' +
         'cat {output.out}.temp1.txt {output.out}.temp2.txt | sort -k1,1 -k2,2n > {output.out}'
 
