@@ -721,9 +721,9 @@
             "time": "60",
             "threads": 1
         },
-	 "bedtools": {
+	"bedtools": {
+	"call": "/path/to/bedtools ",
         "intersect": {
-                "call": "/path/to/bedtools intersect ",
                 "params": "",
                 "scratch": "1000",
                 "mem": "1000",
@@ -731,7 +731,6 @@
                 "threads": 1
             },
         "merge": {
-                "call": "/path/to/bedtools merge ",
                 "params": "",
                 "scratch": "1000",
                 "mem": "1000",
