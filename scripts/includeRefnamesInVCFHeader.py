@@ -8,12 +8,12 @@ Franziska Singer, August 2015
 import sys
 
 if len(sys.argv) <= 1:
-	print "Integrate the reference contigs from a separate file to given vcf file (e.g. required for varscan or freebayes output)."
-	print "Usage: python includeRefnamesInVCFHeader.py [vcfFile] [referenceNamesList] [outFile]"
+	print("Integrate the reference contigs from a separate file to given vcf file (e.g. required for varscan or freebayes output).")
+	print("Usage: python includeRefnamesInVCFHeader.py [vcfFile] [referenceNamesList] [outFile]")
 	sys.exit(1)
 if "-h" in sys.argv[1]:
-	print "Integrate the reference contigs from a separate file to given vcf file (e.g. required for varscan or freebayes output)."
-	print "Usage: python includeRefnamesInVCFHeader.py [vcfFile] [referenceNamesList] [outFile]"
+	print("Integrate the reference contigs from a separate file to given vcf file (e.g. required for varscan or freebayes output).")
+	print("Usage: python includeRefnamesInVCFHeader.py [vcfFile] [referenceNamesList] [outFile]")
 	sys.exit(1)
 
 vcfFile = sys.argv[1]

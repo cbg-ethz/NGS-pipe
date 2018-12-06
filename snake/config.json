@@ -359,7 +359,6 @@
             "params": ""
         },
         "simpleMutect1Filter":{
-            "call": "sh /path/to/NGS-pipe/scripts/simpleMutect1Filter.sh ",
             "scratch": "5000",
             "mem": "2000",
             "time": "200",
@@ -481,7 +480,7 @@
             "threads": 1
         },
         "varscanSomaticFilter":{
-            "call": "python2 /path/to/NGS-pipe/scripts/filterSNVcallOutput_varscan_somatic.py ",
+            "call": "python /path/to/NGS-pipe/scripts/filterSNVcallOutput_varscan_somatic.py ",
             "minVarSupport": "0",
             "pvalue": "0.05",
             "minNucCoverage": "0",
@@ -495,8 +494,15 @@
             "time": "200",
             "threads": 1
         },
+	"createReferenceHeaderFile":{
+            "call": "python /path/to/NGS-pipe/scripts/createReferenceHeaderFile.py ",
+            "scratch": "1000",
+            "mem": "500",
+            "time": "200",
+            "threads": 1
+        },
         "updateVCFHeader":{
-            "call": "python2 /path/to/NGS-pipe/scripts/includeRefnamesInVCFHeader.py ",
+            "call": "python /path/to/NGS-pipe/scripts/includeRefnamesInVCFHeader.py ",
             "scratch": "5000",
             "mem": "2000",
             "time": "200",
@@ -662,12 +668,12 @@
                 "scratch": ""
             },
             "filter":{
-                "call":"",
+                "call":"python /path/to/NGS-pipe/scripts/filterBICseq2.py ",
                 "scratch": "",
                 "mem": "",
                 "time": "",
                 "threads": 1,
-                "pvalueThreshold": ""
+                "pvalueThreshold": "0.05"
             }
         },
         "extractContigs":{
