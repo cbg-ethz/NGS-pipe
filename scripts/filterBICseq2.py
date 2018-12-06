@@ -12,8 +12,8 @@ import re
 
 
 if "-h" in sys.argv[1]:
-	print "Filter BICse2 results and reformat to .bed file for bedtools annotation."
-	print "Usage: python filterBICseq2.py [infileBICseq2] [outfile] [pvalueThreshold]"
+	print("Filter BICse2 results and reformat to .bed file for bedtools annotation.")
+	print("Usage: python filterBICseq2.py [infileBICseq2] [outfile] [pvalueThreshold]")
 	sys.exit(1)
 
 infileBICseq2 = sys.argv[1]
@@ -45,4 +45,4 @@ for line in infile:   # format: chrom	start	end	binNum	tumor	tumor_expect	normal
 infile.close()
 outfile.close()
 
-print "Filtered %s of %s CNVs with threshold %s." %(filteredCNVs,allCNVs,pvalueThreshold)
+print("Filtered %s of %s CNVs with threshold %s." %(filteredCNVs,allCNVs,pvalueThreshold))
