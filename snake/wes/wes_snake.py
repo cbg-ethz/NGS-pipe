@@ -184,6 +184,7 @@ rule wes:
         #expand(SOMATICSEQOUT + '{type}.{tumorNormalMatching}.somaticseq.dbSNP.cosmic.snpEff.vcf', type = ['snp', 'indel'], tumorNormalMatching = getNormalTumorFiles()),
         #HAPLOTYPECALLEROUT + 'combined_dist.pdf',
         #expand(FACETSOUT + '{tumorNormalMatching}.cn', tumorNormalMatching = getNormalTumorFiles()),
+        #expand(FACETSOUT + '{tumorNormalMatching}.reformat.filtered.annotated.txt', tumorNormalMatching = getNormalTumorFiles()),
         expand(VARSCANCNVOUT + '{tumorNormalMatching}.copynumber', tumorNormalMatching = getNormalTumorFiles()),
         expand(GATKVARIANTCOMBINEOUT + '{tumorNormalMatching}.combined.dbSNP.cosmic.snpEff.vcf', tumorNormalMatching = getNormalTumorFiles())
     output:

@@ -768,6 +768,22 @@
                 "mem": "10000",
                 "time": "60",
                 "threads": 1
+            },
+            "reformat": {
+                "call": "python /path/to/NGS-pipe/scripts/facets_reformat_correctChromName.py ",
+                "params": "--colName_chrom chrom --colName_start start --colName_stop end ",
+                "scratch": "10000",
+                "mem": "2000",
+                "time": "240",
+                "threads": 1
+            },
+            "filter": {
+                "call": "python /path/to/NGS-pipe/scripts/filter_facets_copynumber.py ",
+                "colName_totalCopy": "tcn.em",
+                "scratch": "10000",
+                "mem": "2000",
+                "time": "240",
+                "threads": 1
             }
         },
         "somaticseq": {

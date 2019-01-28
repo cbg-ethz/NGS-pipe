@@ -398,8 +398,52 @@ rule facets:
         '{params.params} ' +
         '{input.csv} {output.txt} {output.pdf}')
 
+# reformat facets results to enable annotation
+rule facets_reformat:
+    input:
+        originalCN = FACETSOUT + '{tumor}_vs_{normal}.cn',
+	refFile = config['resources'][ORGANISM]['reference']
+    output:
+        reformatTXT = FACETSOUT + '{tumor}_vs_{normal}.reformat.txt'
+    params:
+        lsfoutfile = FACETSOUT + '{tumor}_vs_{normal}.reformat.txt.lsfout.log',
+        lsferrfile = FACETSOUT + '{tumor}_vs_{normal}.reformat.txt.lsferr.log',
+        scratch = config['tools']['facets']['reformat']['scratch'],
+        mem = config['tools']['facets']['reformat']['mem'],
+        time = config['tools']['facets']['reformat']['time'],
+        params = config['tools']['facets']['reformat']['params']
+    threads:
+        config['tools']['facets']['reformat']['threads']
+    benchmark:
+        FACETSOUT + '{tumor}_vs_{normal}.reformat.txt.benchmark'
+    shell:
+        ('{config[tools][facets][reformat][call]} ' + 
+        '{params.params} ' +
+        '--inFile {input.originalCN} --outFile {output.reformatTXT} --refFile {input.refFile}')
+
+# filter facets results and categorize the CNVS
+rule facets_filter:
+    input:
+        txt = FACETSOUT + '{tumor}_vs_{normal}.txt'
+    output:
+        filteredCN = FACETSOUT + '{tumor}_vs_{normal}.filtered.txt'
+    params:
+        lsfoutfile = FACETSOUT + '{tumor}_vs_{normal}.filtered.txt.lsfout.log',
+        lsferrfile = FACETSOUT + '{tumor}_vs_{normal}.filtered.txt.lsferr.log',
+        scratch = config['tools']['facets']['filter']['scratch'],
+        mem = config['tools']['facets']['filter']['mem'],
+        time = config['tools']['facets']['filter']['time'],
+        colName_totalCopy = config['tools']['facets']['filter']['colName_totalCopy']
+    threads:
+        config['tools']['facets']['filter']['threads']
+    benchmark:
+        FACETSOUT + '{tumor}_vs_{normal}.filtered.txt.benchmark'
+    shell:
+        ('{config[tools][facets][filter][call]} ' + 
+        '--infile {input.txt} --outfile {output.filteredCN} ' +
+        '--colName_totalCopy {params.colName_totalCopy}')
+
 # This rule annotates the CNV call results (for excavator reformatting is needed first)
-# TODO: may be of general use, if database is part of paramters? Chose a better suited place in that case!
 rule annotateCNVsWithBedtools:
     input:
         inRes = '{sample}.txt',
