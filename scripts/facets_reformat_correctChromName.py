@@ -63,7 +63,7 @@ main body
 parser = argparse.ArgumentParser(description='Make facets .cn format bedtools compatible to allow CNV annotation. Further, check and correct if chromosome names have been altered by facets.')
 parser.add_argument('--inFile', dest='inFile', required=True, help='Input table with copy number calls, tab separated.')
 parser.add_argument('--refFile', dest='refFile', required=True, help='Fasta file with the reference sequence used for mapping.')
-parser.add_argument('--outfile', dest='outFile', required=True, help='Name of the reformatted output file.')
+parser.add_argument('--outFile', dest='outFile', required=True, help='Name of the reformatted output file.')
 parser.add_argument('--colName_chrom', dest='colName_chrom', required=True, help='Column name of column containing the chromosome names.')
 parser.add_argument('--colName_start', dest='colName_start', required=True, help='Column name of column containing the CNV start position.')
 parser.add_argument('--colName_stop', dest='colName_stop', required=True, help='Column name of column containing the CNV stop position.')
