@@ -433,7 +433,9 @@ rule facets_filter:
         scratch = config['tools']['facets']['filter']['scratch'],
         mem = config['tools']['facets']['filter']['mem'],
         time = config['tools']['facets']['filter']['time'],
-        colName_totalCopy = config['tools']['facets']['filter']['colName_totalCopy']
+        colName_totalCopy = config['tools']['facets']['filter']['colName_totalCopy'],
+        colName_snpNum = config['tools']['facets']['filter']['colName_snpNum'],
+        threshold_snpNum = config['tools']['facets']['filter']['threshold_snpNum']
     threads:
         config['tools']['facets']['filter']['threads']
     benchmark:
@@ -441,7 +443,7 @@ rule facets_filter:
     shell:
         ('{config[tools][facets][filter][call]} ' + 
         '--infile {input.txt} --outfile {output.filteredCN} ' +
-        '--colName_totalCopy {params.colName_totalCopy}')
+        '--colName_totalCopy {params.colName_totalCopy} --colName_snpNum {params.colName_snpNum} --threshold_snpNum {params.threshold_snpNum}')
 
 # This rule annotates the CNV call results (for excavator reformatting is needed first)
 rule annotateCNVsWithBedtools:

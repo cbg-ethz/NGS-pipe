@@ -780,6 +780,8 @@
             "filter": {
                 "call": "python /path/to/NGS-pipe/scripts/filter_facets_copynumber.py ",
                 "colName_totalCopy": "tcn.em",
+                "colName_snpNum": "nhet",
+                "threshold_snpNum": "16",
                 "scratch": "10000",
                 "mem": "2000",
                 "time": "240",

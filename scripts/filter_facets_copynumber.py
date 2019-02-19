@@ -19,15 +19,18 @@ function definitions
 def getColumnIndex(firstInputLine):
     firstLineSplit = firstInputLine.split('\t')
     index_totalCopyCol = -1
+    index_snpNum = -1
     for pos in range(0,len(firstLineSplit)):
         if args.colName_totalCopy == firstLineSplit[pos]:
             index_totalCopyCol = pos
-            break
-    if index_totalCopyCol == -1:
-        print("Error! Did not find a column matching %s in input header %s." %(args.colName_totalCopy,firstInputLine))
+        if args.colName_snpNum == firstLineSplit[pos]:
+            index_snpNum = pos
+
+    if (index_totalCopyCol == -1) or (index_snpNum == -1):
+        print("Error! Did not find all column names in input header %s." %(firstInputLine))
         sys.exit(1)
 
-    return index_totalCopyCol
+    return (index_totalCopyCol,index_snpNum)
 
 '''
 main body
@@ -37,6 +40,8 @@ parser = argparse.ArgumentParser(description='Filter facets copy number calls. R
 parser.add_argument('--infile', dest='inFile', required=True, help='Input table with copy number calls, tab separated.')
 parser.add_argument('--outfile', dest='outFile', required=True, help='Name of the filtered output file.')
 parser.add_argument('--colName_totalCopy', dest='colName_totalCopy', required=True, help='Column name of column containing the total copy number state.')
+parser.add_argument('--colName_snpNum', dest='colName_snpNum', required=True, help='Column name of column containing the number of heterozygous snps (nhet).')
+parser.add_argument('--threshold_snpNum', dest='threshold_snpNum', required=True, help='Filter threshold on number of heterozygous snps. Specify 0 to turn off.')
 #parser.add_argument('--colName_minorCopy', dest='colName_minorCopy', required=True, help='Column name of column containing the minor alelle copy state.')
 
 args = parser.parse_args()
@@ -45,7 +50,7 @@ infile = open(args.inFile,'r')
 outfile = open(args.outFile,'w')
 
 firstInputLine = infile.readline().strip()
-index_totalCopyCol = getColumnIndex(firstInputLine)
+(index_totalCopyCol,index_snpNum) = getColumnIndex(firstInputLine)
 
 outHeader = firstInputLine
 outHeader += "\tCNV_ratio\tCNV_log2ratio\tCNV_category"
@@ -62,8 +67,12 @@ for line in infile:
 	lineSplit = line.strip().split("\t")
 	num_all += 1
 	totalCopy = float(lineSplit[index_totalCopyCol])
+	snpNum = float(lineSplit[index_snpNum])
 	
 	if totalCopy == 2:
+		num_outfilter += 1
+		continue
+	if snpNum < float(args.threshold_snpNum):
 		num_outfilter += 1
 		continue
 
@@ -97,4 +106,4 @@ for line in infile:
 infile.close()
 outfile.close()
 
-print("Parsed events: %s\nFiltered out (neutral): %s\nThe remaining CNVs include:\nHomozygous deletions (DEL): %s\nShallow copynumber losses (LOSS): %s\nCopynumber gains (GAIN): %s\nHigh amplifications (AMP): %s" %(num_all,num_outfilter,num_del,num_loss,num_gain,num_amp))
+print("Parsed events: %s\nFiltered out: %s\nThe remaining CNVs include:\nHomozygous deletions (DEL): %s\nShallow copynumber losses (LOSS): %s\nCopynumber gains (GAIN): %s\nHigh amplifications (AMP): %s" %(num_all,num_outfilter,num_del,num_loss,num_gain,num_amp))
