@@ -103,8 +103,11 @@ outfile.write(outfileHeader + "\n")
 
 for line in infile:
 	lineSplit = line.strip().split('\t')
+	chromName = lineSplit[index_chrom]
+	if lineSplit[index_chrom] == "23":
+		chromName = "X"
 
-	lineTemp = "%s%s\t%s\t%s" %(chrom_chr,lineSplit[index_chrom],lineSplit[index_start],lineSplit[index_stop])
+	lineTemp = "%s%s\t%s\t%s" %(chrom_chr,chromName,lineSplit[index_start],lineSplit[index_stop])
 
 	for posi in range(0,len(lineSplit)):
 		if (posi == index_chrom) or (posi == index_start) or (posi == index_stop):
