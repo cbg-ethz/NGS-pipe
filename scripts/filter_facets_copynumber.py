@@ -72,7 +72,7 @@ for line in infile:
 	if totalCopy == 2:
 		num_outfilter += 1
 		continue
-	if snpNum < args.threshold_snpNum:
+	if snpNum < float(args.threshold_snpNum):
 		num_outfilter += 1
 		continue
 
